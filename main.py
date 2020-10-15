@@ -17,7 +17,7 @@ def get_prefix(bot, message):
 
 bot = commands.Bot(command_prefix = get_prefix, case_insensitive=True)
 bot.remove_command('help')
-TOKEN = 'NzY0Njc3ODMzODIwOTk1NjA1.X4Jvug.kugM9cHroOi6sHecHqc4uMdTEAw'
+TOKEN = 'NzY2MTU3NDcxMjY5Mzg4MzU5.X4fRvw.CJIj7VYZTOzwI7_0pgWoo8Ul-4k'
 
 initial_extensions = ['events.ready',
                       'events.commanderror',

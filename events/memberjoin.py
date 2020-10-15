@@ -10,8 +10,8 @@ class OnJoin(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        #channel = general channel id
-        embed = discord.Embed(title="Welcome", description=f"Please welcome <@{member}> to the server!", color=0x00ff00)
+        channel = self.bot.get_channel(766123673860964377)
+        embed = discord.Embed(title="Welcome", description=f"Please welcome <@{member.id}> to the server!", color=0x00ff00)
         await channel.send(embed=embed)
         try:
             embed = discord.Embed(title="Welcome", description=f"Hello <@{member}>, welcome to Smudge Studios! Please ensure that you read the rules in the <#ruleschannelid>, and have fun!", color=0x00ff00)
