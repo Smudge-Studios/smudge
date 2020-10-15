@@ -8,7 +8,7 @@ class PingCMD(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def help(self, ctx):
+    async def ping(self, ctx):
         await ctx.send(f'Pong! **`{self.bot.latency}`**')
 
 def setup(bot):
