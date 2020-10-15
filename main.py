@@ -19,6 +19,7 @@ bot = commands.Bot(command_prefix = get_prefix, case_insensitive=True)
 bot.remove_command('help')
 TOKEN = 'NzY2MTU3NDcxMjY5Mzg4MzU5.X4fRvw.CJIj7VYZTOzwI7_0pgWoo8Ul-4k'
 
+#extentions to load when bot starts
 initial_extensions = ['events.ready',
                       'events.commanderror',
                       'events.memberjoin',
