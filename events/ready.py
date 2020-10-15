@@ -11,6 +11,7 @@ class OnReady(commands.Cog):
     async def on_ready(self):
         print(' Successfully logged in as ' + self.bot.user.name + ' | ' + str(self.bot.user.id) + '.')
         print('Bot Started')
+        delay = 30
         while True:
             try:
                 member_count = len([m for m in ctx.guild.members if not m.bot]) # doesn't include bots
