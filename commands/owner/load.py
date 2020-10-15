@@ -22,7 +22,7 @@ class LoadCMD(commands.Cog):
             await ctx.send(embed=embed)
             print(f"Couldn't load extension {cog}: {e}")
         else:
-            embed = discordEmbed(title='Success', description=f'Successfully loaded extension {cog}', color=0xff0000)
+            embed = discord.Embed(title='Success', description=f'Successfully loaded extension {cog}', color=0xff0000)
             await ctx.send(embed=embed)
 
 def setup(bot):

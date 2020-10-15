@@ -18,7 +18,7 @@ class UnloadCMD(commands.Cog):
             await ctx.send(embed=embed)
             print(f"Couldn't unload extension {cog}: {e}")
         else:
-            embed = discordEmbed(title='Success', description=f'Successfully unloaded extension {cog}', color=0xff0000)
+            embed = discord.Embed(title='Success', description=f'Successfully unloaded extension {cog}', color=0xff0000)
             await ctx.send(embed=embed)
 
 def setup(bot):
