@@ -19,10 +19,6 @@ class CMDError(commands.Cog):
             embed = discord.Embed(title="Error", description="""Bad Argument.""", color=0xff0000)
             await ctx.send(embed=embed)
             return
-        elif isinstance(error, commands.MemberNotFound) or isinstance(error, commands.UserNotFound):
-            embed = discord.Embed(title="Error", description="""User not found.""", color=0xff0000)
-            await ctx.send(embed=embed)
-            return
         elif isinstance(error, commands.MissingPermissions) or isinstance(error, commands.NotOwner):
             embed = discord.Embed(title="Error", description="""Insufficient permissions.""", color=0xff0000)
             await ctx.send(embed=embed)
