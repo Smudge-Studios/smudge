@@ -21,7 +21,12 @@ bot.remove_command('help')
 TOKEN = 'NzY0Njc3ODMzODIwOTk1NjA1.X4Jvug.kugM9cHroOi6sHecHqc4uMdTEAw'
 
 initial_extensions = ['events.ready',
-                      'events.commanderror']
+                      'events.commanderror',
+                      'events.memberjoin',
+                      'commands.owner.load',
+                      'commands.owner.unload',
+                      'commands.owner.reload',
+                      'commands.help']
 
 print(' Loading Cogs...')
 if __name__ == '__main__':
