@@ -26,7 +26,8 @@ initial_extensions = ['events.ready',
                       'commands.owner.load',
                       'commands.owner.unload',
                       'commands.owner.reload',
-                      'commands.help']
+                      'commands.help',
+                      'commands.ping']
 
 print(' Loading Cogs...')
 if __name__ == '__main__':
