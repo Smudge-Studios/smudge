@@ -18,7 +18,7 @@ class LoadCMD(commands.Cog):
             self.bot.load_extension(cog)
             print(f'Successfully loaded extension {cog}.')
         except Exception as e:
-            embed = discordEmbed(title='Error', description=str(e), color=0xff0000)
+            embed = discord.Embed(title='Error', description=str(e), color=0xff0000)
             await ctx.send(embed=embed)
             print(f"Couldn't load extension {cog}: {e}")
         else:
