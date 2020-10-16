@@ -23,6 +23,10 @@ class CMDError(commands.Cog):
             embed = discord.Embed(title="Error", description="""Insufficient permissions.""", color=0xff0000)
             await ctx.send(embed=embed)
             return
+        elif isinstance(error, commands.CommandOnCooldown):
+            embed = discord.Embed(title="Error", description="""That command is on a cooldown.""", color=0xff0000)
+            await ctx.send(embed=embed)
+            return
         else:
             embed = discord.Embed(title="Error", description="""An unknown error occurred. This error has been reported.
             `""" + str(error) + '`', color=0xff0000)

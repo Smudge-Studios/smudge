@@ -9,6 +9,7 @@ class LoadCMD(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def load(self, ctx, *, cog: str):
         """Command which Loads a Module.
         Remember to use dot path. e.g: cogs.owner"""
