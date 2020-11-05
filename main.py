@@ -1,46 +1,70 @@
-print('Starting bot...')
+print('Starting Bot...')
 print(' Importing Modules...')
+import sqlite3
 import discord
 from discord.ext import commands
+from configparser import ConfigParser
+from core.EcoCore import utils
 print(' Modules imported.')
 
+print(' Clearing PyCache...')
+utils.create_file
+utils.clearPyCache
+print(' PyCache cleared.')
 
+print(' Defining constants...')
+parser = ConfigParser()
+parser.read('config.ini')
+token = parser.get('CONFIG', 'token')
+conn = sqlite3.connect('data\\config.db')
+intents = discord.Intents.all()
+intents.members = True
+print(' Constants defined.')
 
 def get_prefix(bot, message):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
+    cursor = conn.execute("SELECT * from CONFIG")
+    for row in cursor:
+        if row[0] == message.guild.id:
+            return row[1]
+    else:
+        conn.execute(f"INSERT INTO COUNTING (GUILD) \
+            VALUES ({message.guild.id})")
+        conn.execute(f"INSERT INTO CONFIG (GUILD, PREFIX) \
+            VALUES ({message.guild.id}, '>')")
 
-    prefixes = ['s!','S!']
-
-
-    # If we are in a guild, we allow for the user to mention us or use any of the prefixes in our list.
-    return commands.when_mentioned_or(*prefixes)(bot, message)
-
-bot = commands.Bot(command_prefix = get_prefix, case_insensitive=True)
+bot = commands.Bot(command_prefix = get_prefix, case_insensitive=True, intents=intents)
 bot.remove_command('help')
-TOKEN = 'NzY2MTU3NDcxMjY5Mzg4MzU5.X4fRvw.CJIj7VYZTOzwI7_0pgWoo8Ul-4k'
 
-#extentions to load when bot starts
-initial_extensions = ['events.ready',
-                      'events.commanderror',
-                      'events.memberjoin',
-                      'commands.owner.load',
-                      'commands.owner.unload',
-                      'commands.owner.reload',
-                      'commands.help',
-                      'commands.ping']
+initial_extensions = ['commands.admins',
+                      'commands.eco',
+                      'commands.fun',
+                      'commands.moderation',
+                      'commands.owner',
+                      'commands.util',
+                      'events.botjoin',
+                      'events.counting',
+                      'events.error',
+                      'events.ready',
+                      'events.userjoin',
+                      'tasks.bans',
+                      'tasks.mutes']
 
 print(' Loading Cogs...')
 if __name__ == '__main__':
     for extension in initial_extensions:
         print("     Loading extension " + extension + '...')
-        bot.load_extension(extension)
-        print('     Extension ' + extension + ' loaded.')
+        try:
+            bot.load_extension(extension)
+            print('     Extension ' + extension + ' loaded.')
+        except Exception as e:
+            print(f"     {e}")
 print(' Cogs loaded.')
 
 
 
 print(' Logging In...')
 try:
-    bot.run(TOKEN, bot=True, reconnect=True)
+    bot.run(token)
 except Exception as e:
     print(' ' + str(e))
