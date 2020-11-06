@@ -5,15 +5,19 @@ This is a list of databases and their purposes
 
 Formatted as:
 # `DataBase File`
+Description of database.
 
 ## Table
+Description of table.
 
 ### Value within table
+Description of table value.
 
 
+# Useful Resources
+[SQLite3 Downloads](https://www.sqlite.org/download.html)
 
-
-
+[SQLite Studio](https://github.com/pawelsalawa/sqlitestudio/releases)
 
 
 # `bot.db`
