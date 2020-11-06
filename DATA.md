@@ -3,17 +3,6 @@ Data for the bot is stored within multiple SQLite3 Databases.
 
 This is a list of databases and their purposes
 
-Formatted as:
-# `DataBase File`
-Description of database.
-
-## Table
-Description of table.
-
-### Value within table
-Description of table value.
-
-
 # Useful Resources
 [SQLite3 Downloads](https://www.sqlite.org/download.html)
 
