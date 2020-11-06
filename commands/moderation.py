@@ -14,6 +14,7 @@ class Moderation(commands.Cog):
     @commands.command
     @commands.has_guild_permissions(manage_guild=True)
     async def muterole(self, ctx, role, name: str=None):
+        """ Specify a mute role, or have the bot create one. """
         guild = ctx.guild
         if role.lower() == 'create':
             if name == None:
@@ -65,6 +66,24 @@ class Moderation(commands.Cog):
                 VALUES ({guild.id}, {muterole.id}, 0)")
         await ctx.send(f"Successfully set the muterole to {muterole.name}.")
             
+    @commands.command()
+    @commands.has_guild_permissions(manage_messages=True)
+    async def warn(self, ctx, member: discord.Member=None, reason: str='None'):
+        """ Sends a warning to a user. """
+        if member is None:
+            await ctx.send("Please provide a member to warn.")
+            return
+        try:
+            warns = modcore.warn(ctx, member, reason)
+        except error.Unable as e:
+            await ctx.send(str(e))
+            return
+        try:
+            await member.send(f"You were warned in {ctx.guild.name}. Reason: {reason}. \nThis is your {warns} warning.")
+        except discord.Forbidden:
+            pass
+        await ctx.send(f"Successfully warned {member.name}. This is their {warns} warning.")
+    
     @commands.command()
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
@@ -142,7 +161,16 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.has_guild_permissions(manage_messages=True)
     @commands.bot_has_guild_permissions(manage_messages=True)
-    async def purge(self, ctx, number):
+    async def purge(self, ctx, number: str='100'):
+        """ Bulk deletes a number of messages in a channel. Limit of 100 messages. """
+        if number > 1000:
+            await ctx.send(f"Cannot delete more than 1000 messages.")
+            return
+        try:
+            number = int(number)
+        except ValueError:
+            await ctx.send("Invalid number.")
+            return
         deleted = await ctx.channel.purge(limit=number, check=True)
         if len(deleted) > 1:
             await ctx.send(f'Deleted {len(deleted)} messages.')
@@ -153,6 +181,7 @@ class Moderation(commands.Cog):
     @commands.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
     async def unban(self, ctx, member: discord.Member=None):
+        """ Unban the specified user from the guild. """
         guild = ctx.guild
         if member is None:
             await ctx.send('Please provide a user to unban.')
@@ -169,6 +198,7 @@ class Moderation(commands.Cog):
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
     async def unmute(self, ctx, member: discord.Member=None):
+        """ Unmutes the specified user. """
         guild = ctx.guild
         if member is None:
             await ctx.send('Please provide a user to unmute.')
@@ -188,6 +218,7 @@ class Moderation(commands.Cog):
     @commands.command(aliases=['listpunish', 'lpunish', 'infractions', 'lp'])
     @commands.has_guild_permissions(manage_guild=True)
     async def listpunishments(self, ctx, member: discord.Member=None, type: str=None):
+        """ Displays a list of punishments a member has recieved. """
         if member is None:
             await ctx.send("Please specify a member.")
             return
@@ -206,6 +237,7 @@ class Moderation(commands.Cog):
     @commands.command(aliases=['punish','punishinfo','infraction','pi'])
     @commands.has_guild_permissions(manage_guild=True)
     async def punishmentinfo(self, ctx, id: str=None):
+        """ Displays information on a specific punishment. """
         if id is None:
             await ctx.send("Please provide a punishment ID.")
             return
@@ -229,6 +261,7 @@ class Moderation(commands.Cog):
     @commands.command(aliases=['delpunish','deletepunish', 'dp'])
     @commands.has_guild_permissions(manage_guild=True)
     async def deletepunishment(self, ctx, id: int=None):
+        """ Deletes a punishment. This action is irreversable. """
         if id is None:
             await ctx.send("Please provide a punishment ID.")
             return
@@ -256,20 +289,6 @@ class Moderation(commands.Cog):
             await ctx.send(str(e))
             return
         await ctx.send("The operation was a success.")
-            
-    @commands.command()
-    @commands.has_guild_permissions(manage_messages=True)
-    async def warn(self, ctx, member: discord.Member=None, reason: str='None'):
-        if member is None:
-            await ctx.send("Please provide a member to warn.")
-            return
-        try:
-            warns = modcore.warn(ctx, member, reason)
-        except error.Unable as e:
-            await ctx.send(str(e))
-            return
-        await member.send(f"You were warned in {ctx.guild.name}. Reason: {reason}. \nThis is your {warns} warning.")
-        await ctx.send(f"Successfully warned {member.name}. This is their {warns} warning.")
 
 def setup(bot):
     bot.add_cog(Moderation(bot))

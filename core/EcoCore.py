@@ -4,44 +4,7 @@ import random
 import sqlite3
 from core.Exceptions import *
 
-parser = ConfigParser()
-parser.read('config.ini')
-db = parser.get('CONFIG', 'database')
-conn = sqlite3.connect(db)
-
-class utils:
-    def create_file(self):
-        """ Creates the database. """
-        try:
-            # Initialise the database
-            conn.execute('''CREATE TABLE ECONOMY
-                (USER           INT     NOT NULL,
-                WALLET          INT     NOT NULL,
-                BANK            INT     NOT NULL);''')
-        except sqlite3.OperationalError as e:
-            if str(e) == 'table ECONOMY already exists':
-                pass
-            else:
-                raise e
-
-    def clearPyCache(self):
-        """ Deletes '__pycache__' folders. """
-        try:
-            shutil.rmtree('commands\\__pycache__')
-        except FileNotFoundError:
-            pass
-
-        try:
-            shutil.rmtree('events\\__pycache__')
-        except FileNotFoundError:
-            pass
-
-        try:
-            shutil.rmtree('__pycache__')
-        except FileNotFoundError:
-            pass
-
-utils = utils()
+conn = sqlite3.connect('dbdata\\economy.db')
 
 class data:
     def read(self):
@@ -54,11 +17,14 @@ class data:
 
 data = data()
 
+
 class file:
     def create(self, user):
         """ Adds a new user to the database. """
         conn.execute(f"INSERT INTO ECONOMY (USER,WALLET,BANK) \
             VALUES ({user}, 350, 200)")
+
+file = file()
 
 class file2:
     def check(self, user):
@@ -73,6 +39,7 @@ class file2:
     def delete(self, user):
         try:
             conn.execute(f"DELETE from ECONOMY where USER = {user}")
+            data.save()
         except sqlite3.OperationalError as e:
             if str(e) == f'no such column: {user}':
                 raise ValueError
@@ -81,7 +48,6 @@ class file2:
 
 
 file2 = file2()
-file = file()
 
 class wallet:
     def get(self, user):

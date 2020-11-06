@@ -31,7 +31,7 @@ class Server(commands.Cog):
         if channel is None:
             await ctx.send('Please provide a channel.')
             return
-        elif channel == 'create':
+        elif channel.lower() == 'create':
             try:
                 overwrites = {
                     guild.default_role: discord.PermissionOverwrite(read_messages=True, send_messages=True),
@@ -42,6 +42,9 @@ class Server(commands.Cog):
                 await ctx.send("I do not have the required permissions to create a channel.")
                 return
             await ctx.send(f"Text channel created. (<#{channel.id}>)")
+        elif channel.lower() == 'remove':
+            conn.execute(f"UPDATE COUNTING set CHANNEL = Null where GUILD = {guild.id}")
+            await ctx.send("Successfully removed counting channel from the database.")
         else:
             try:
                 channel = guild.get_channel(int(channel.replace('<@','').replace('>','')))
@@ -68,12 +71,12 @@ class Server(commands.Cog):
     @commands.has_guild_permissions(manage_guild=True)
     @commands.bot_has_guild_permissions(manage_channels=True)
     async def suggestionchannel(self, ctx, channel: str=None):
-        """ Define a counting channel, or have the bot create one. """
+        """ Define a suggestion channel, or have the bot create one. """
         guild = ctx.guild
         if channel is None:
             await ctx.send('Please provide a channel.')
             return
-        elif channel == 'create':
+        elif channel.lower() == 'create':
             try:
                 overwrites = {
                     guild.default_role: discord.PermissionOverwrite(read_messages=True, send_messages=False),
@@ -84,6 +87,9 @@ class Server(commands.Cog):
                 await ctx.send("I do not have the required permissions to create a channel.")
                 return
             await ctx.send(f"Text channel created. (<#{channel.id}>)")
+        elif channel.lower() == 'remove':
+            conn.execute(f"UPDATE CONFIG set SUGGESTIONS = Null where GUILD = {guild.id}")
+            await ctx.send("Successfully removed counting channel from the database.")
         else:
             try:
                 channel = guild.get_channel(int(channel.replace('<@','').replace('>','')))
@@ -96,7 +102,47 @@ class Server(commands.Cog):
         cursor = conn.execute("SELECT * from CONFIG")
         for row in cursor:
             if row[0] == ctx.guild.id:
-                conn.execute(f"UPDATE COUNTING set SUGGESTIONS = {channel.id} where GUILD = {guild.id}")
+                conn.execute(f"UPDATE CONFIG set SUGGESTIONS = {channel.id} where GUILD = {guild.id}")
+                break
+        conn.commit()
+        await ctx.send(f'Successfully set suggestion channel to <#{channel.id}>.')
+
+    @commands.command(aliases=['reportschannel','rc'])
+    @commands.has_guild_permissions(manage_guild=True)
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    async def reportchannel(self, ctx, channel: str=None):
+        """ Define a reports channel, or have the bot create one. """
+        guild = ctx.guild
+        if channel is None:
+            await ctx.send('Please provide a channel.')
+            return
+        elif channel.lower() == 'create':
+            try:
+                overwrites = {
+                    guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False),
+                    guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
+                }
+                channel = await guild.create_text_channel('reports', topic="A reports channel.", overwrites=overwrites, reason=f"Suggestion channel requested by {ctx.author.name}.")
+            except discord.Forbidden:
+                await ctx.send("I do not have the required permissions to create a channel.")
+                return
+            await ctx.send(f"Text channel created. (<#{channel.id}>)")
+        elif channel.lower() == 'remove':
+            conn.execute(f"UPDATE CONFIG set REPORTS = Null where GUILD = {guild.id}")
+            await ctx.send("Successfully removed counting channel from the database.")
+        else:
+            try:
+                channel = guild.get_channel(int(channel.replace('<@','').replace('>','')))
+            except ValueError:
+                await ctx.send('Invalid channel.')
+                return
+            if channel == None:
+                await ctx.send("Couldn't find that channel.")
+                return
+        cursor = conn.execute("SELECT * from CONFIG")
+        for row in cursor:
+            if row[0] == ctx.guild.id:
+                conn.execute(f"UPDATE CONFIG set REPORTS = {channel.id} where GUILD = {guild.id}")
                 break
         conn.commit()
         await ctx.send(f'Successfully set suggestion channel to <#{channel.id}>.')

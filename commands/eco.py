@@ -33,7 +33,7 @@ class Economy(commands.Cog):
 
     @commands.command(aliases=['bal'])
     async def balance(self, ctx, member: discord.Member=None):
-        """ Check somebody's balance. """
+        """ Check somebody's balance, or your own if member isn't specified. """
         if member is None:
             user = ctx.author.name
             userid = ctx.author.id
@@ -118,7 +118,7 @@ class Economy(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 3600, commands.BucketType.user)
     async def rob(self, ctx, member: discord.Member=None):
-        """ Rob somebody. """
+        """ Attempt to rob from someone's wallet. """
         robcmd = self.rob
         if member is None:
             await ctx.send('Please specify a user to rob from.')

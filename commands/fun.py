@@ -12,7 +12,7 @@ class Fun(commands.Cog):
 
     @commands.command()
     async def meme(self, ctx):
-        """ Display a random meme. """
+        """ Display a random meme from [r/memes](https://reddit.com/r/memes/). """
         async with ctx.channel.typing():
             while True:
                 try:
@@ -40,7 +40,7 @@ class Fun(commands.Cog):
 
     @commands.command()
     async def clap(self, ctx, *text):
-        """ Put clap emojis between words. """
+        """ Put👏clap👏emojis👏between👏words. """
         if text == ():
             await ctx.send('Please👏provide👏text👏for👏me👏to👏clap')
             return
@@ -94,7 +94,7 @@ class Fun(commands.Cog):
         await message.edit(content=f"Hack completed.")
         await ctx.send("The 100% real and totally not fake hack was completed.")
 
-    @commands.command(aliases=['8ball'])
+    @commands.command(name='8ball')
     async def eightball(self, ctx, *, question):
         """ Ask the 8ball a question. """
         if question == '':
@@ -144,5 +144,6 @@ class Fun(commands.Cog):
             await ctx.send("You must provide something for me to say.")
             return
         await ctx.send(text)
+
 def setup(bot):
     bot.add_cog(Fun(bot))

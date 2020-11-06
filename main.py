@@ -7,11 +7,6 @@ from configparser import ConfigParser
 from core.EcoCore import utils
 print(' Modules imported.')
 
-print(' Clearing PyCache...')
-utils.create_file
-utils.clearPyCache
-print(' PyCache cleared.')
-
 print(' Defining constants...')
 parser = ConfigParser()
 parser.read('config.ini')

@@ -6,7 +6,7 @@ import datetime
 
 utils = Utils()
 
-class Util(commands.Cog):
+class Utility(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -20,6 +20,7 @@ class Util(commands.Cog):
     @commands.command()
     @commands.bot_has_permissions(read_message_history=True)
     async def report(self, ctx, member: discord.Member=None, *, reason: str=None):
+        """ Report a user for violation of server rules. """
         try:
             await ctx.message.delete(delay=None)
         except discord.Forbidden:
@@ -55,6 +56,7 @@ class Util(commands.Cog):
 
     @commands.command()
     async def suggest(self, ctx, *, suggestion: str=None):
+        """ Make a suggestion to the server. """
         if suggestion is None:
             await ctx.send("Please provide a suggestion.")
             return
@@ -77,6 +79,7 @@ class Util(commands.Cog):
 
     @commands.command('memberinfo')
     async def userinfo(self, ctx, member: discord.Member=None):
+        """ Displays information on a user, or yourself if no user is specified. """
         if member is None:
             member = ctx.author
         embed = discord.Embed(title=f"Info on {member.name}#{member.discriminator}")
@@ -98,6 +101,7 @@ class Util(commands.Cog):
 
     @commands.command(aliases=['guildinfo'])
     async def serverinfo(self, ctx):
+        """ Displays information on the guild the command was ran in. """
         guild = ctx.guild
         embed = discord.Embed(title=f"Server Information")
         embed.add_field(name="Name", value=guild.name, inline=True)
@@ -118,4 +122,4 @@ class Util(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Util(bot))
+    bot.add_cog(Utility(bot))

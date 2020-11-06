@@ -12,7 +12,7 @@ class Other(commands.Cog):
     @commands.command()
     async def help(self, ctx, *, command: str=None):
         """ Displays a list of commands, or help on a specific command. """
-        cogs = ['Util','Fun','Economy','Moderation','Server','Restricted']
+        cogs = ['Utility','Fun','Economy','Moderation','Server','Restricted','Other']
         if command is None:
             embed = discord.Embed(title="Help")
             for i in cogs:
