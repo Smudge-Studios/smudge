@@ -6,8 +6,8 @@ loop = asyncio.get_event_loop()
 time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 conn = sqlite3.connect('data\\moderation.db')
 
-def ord(n):
-    return str(n)+("th" if 4<=n%100<=20 else {1:"st",2:"nd",3:"rd"}.get(n%10, "th"))
+def thstndrd(number):
+    return str(number)+("th" if 4<=number%100<=20 else {1:"st",2:"nd",3:"rd"}.get(number%10, "th"))
 
 class Mod:
     def gettime(self, time):
