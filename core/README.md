@@ -8,11 +8,11 @@ ToDo: Exceptions, ModCore, UtilCore
 # Quick Links
 [EcoCore](https://github.com/Smudge-Studios/smudge/tree/main/core#ecocore)
 
-[Exceptions]()
+[Exceptions](https://github.com/Smudge-Studios/smudge/tree/main/core#exceptions)
 
-[ModCore]()
+[ModCore](https://github.com/Smudge-Studios/smudge/tree/main/core#modcore)
 
-[UtilCore]()
+[UtilCore](https://github.com/Smudge-Studios/smudge/tree/main/core#utilcore)
 
 # EcoCore
 A core that can be imported as a module for Smudge's economy.
