@@ -1,4 +1,4 @@
-print('Starting Bot...')
+print('Starting the Bot...')
 print(' Importing Modules...')
 import sqlite3
 import discord
