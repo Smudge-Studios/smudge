@@ -3,8 +3,6 @@
 
 This really isn't meant for use anywhere but this bot, as it's pretty much 100% hard coded.
 
-ToDo: Exceptions, ModCore, UtilCore
-
 # Quick Links
 [EcoCore](https://github.com/Smudge-Studios/smudge/tree/main/core#ecocore)
 
