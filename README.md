@@ -1,4 +1,5 @@
 # Smudge
+
 The official bot for Smudge Studios, developed by [@plun1331](https://plun1331.github.io).
 
 This bot has not been tested yet.
@@ -30,4 +31,3 @@ python3 -m pip install -U discord.py
 # Windows
 py -3 -m pip install -U discord.py
 ```
-
