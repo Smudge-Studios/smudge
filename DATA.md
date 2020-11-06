@@ -3,6 +3,19 @@ Data for the bot is stored within multiple SQLite3 Databases.
 
 This is a list of databases and their purposes
 
+Formatted as:
+# `DataBase File`
+
+## Table
+
+### Value within table
+
+
+
+
+
+
+
 # `bot.db`
 This database is used for storing global bot config.
 
