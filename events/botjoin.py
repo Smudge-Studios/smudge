@@ -17,5 +17,6 @@ class BotJoin(commands.Cog):
                 break 
             except:
                 pass
+            
 def setup(bot):
     bot.add_cog(BotJoin(bot))
