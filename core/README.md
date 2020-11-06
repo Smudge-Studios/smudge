@@ -78,3 +78,70 @@ Attempts to rob 1/5 of the money in somebody's wallet with a 20% chance of succe
 
 ### pay(user, target, amount)
 Sends money from one user to another.
+
+
+
+# Exceptions
+Some custom exceptions
+## class Exceptions
+A few custom exceptions for the bot.
+### class Unable
+Unable to complete action. Is mostly used for passing custom error text from a core to a cog file.
+
+### class NEMT
+Signifies that the target does not have enough money.
+
+### class NEMU
+Signifies that the command invoker doesn't have enough money.
+
+### class FAIL
+Was made to signify that a robbery failed.
+
+### class BLACKLISTED
+Really no point to this, I started using discord.py's `commands.DisabledCommand` exception instead.
+
+
+
+# ModCore
+A few moderation utilities.
+## thstndrd(number)
+Used for adding 'th', 'st', 'nd', or 'rd' onto the end of intergers.
+
+## class Mod
+The Moderation class.
+### gettime(time)
+Converts a user inputted time value (7d, 1w, etc.) into seconds.
+
+### ban(ctx, member, reason, duration)
+Adds a user to the bot's 'BANS' table in `moderation.db`.
+
+### kick(ctx, member, reason)
+Adds a user to the bot's 'KICKS' table in `moderation.db`.
+
+### mute(ctx, member, reason, duration)
+Adds a user to the bot's 'MUTES' table in `moderation.db`.
+
+### warn(ctx, member, reason)
+Adds a user to the bot's 'WARNS' table in `moderation.db`.
+
+### unban(ctx, member)
+Sets `EXPIRED=TRUE` in the 'BANS' table in `moderation.db` for the specified user.
+
+### unmute(ctx, member)
+Sets `EXPIRED=TRUE` in the 'MUTES' table in `moderation.db` for the specified user.
+
+### fetchpunishlist(ctx, member, type)
+Fetches all punishments given to a specific user of an optional type.
+
+### delpunish(ctx, id)
+Deletes a punishment using the punishment's ID.
+
+# UtilCore
+Mostly configuration editing for servers.
+## class Utils
+Server utils.
+### reportchannel(ctx)
+Fetches the report channel for the guild you are currently in.
+
+### suggestchannel(ctx)
+Fetches the suggestions channel for the guild you are currently in.
