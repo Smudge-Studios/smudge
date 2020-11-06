@@ -7,10 +7,10 @@ This bot has not been tested yet.
 Clone this repository to your computer, place your Discord bot's token in `config.ini`, and execute `main.py`.
 
 ## Commands
-A list of commands can be found [here](https://github.com/Smudge-Studios/smudge/blob/main/COMMMANDS.md).
+A list of commands can be found [here](https://github.com/Smudge-Studios/smudge/blob/main/commands/COMMMANDS.md).
 
 ## Data Storage
-Bot data is stored within multiple SQLite3 databases, found in the `data` folder.
+Bot data is stored within multiple SQLite3 databases, found in the `data` folder. Information on these databases can be found [here](https://github.com/Smudge-Studios/smudge/blob/main/data/README.md)
 
 ## Requirements
 This project requires [discord.py](https://github.com/Rapptz/discord.py). You can install it by running the commands shown below on your respective operating system.
