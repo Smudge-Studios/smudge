@@ -1,4 +1,5 @@
 # Smudge
+![](https://github-readme-stats.vercel.app/api/pin/?username=Smudge-Studios&repo=smudge&theme=cobalt)
 The official bot for Smudge Studios, developed by [@plun1331](https://plun1331.github.io).
 
 This bot has not been tested yet.
