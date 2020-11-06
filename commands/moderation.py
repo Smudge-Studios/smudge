@@ -16,6 +16,7 @@ class Moderation(commands.Cog):
     async def muterole(self, ctx, role, name: str=None):
         """ Specify a mute role, or have the bot create one. """
         guild = ctx.guild
+        muterole = None
         if role.lower() == 'create':
             if name == None:
                 await ctx.send('Please specify the name for your mute role.')
@@ -51,6 +52,9 @@ class Moderation(commands.Cog):
                 return
             elif yes is True:
                 pass
+        if muterole is None:
+            await ctx.send(f"Unable to find role {role}.")
+            return
         cursor = conn.execute("SELECT * from CONFIG")
         try:
             i = False

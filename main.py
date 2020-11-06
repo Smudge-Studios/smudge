@@ -4,7 +4,6 @@ import sqlite3
 import discord
 from discord.ext import commands
 from configparser import ConfigParser
-from core.EcoCore import utils
 print(' Modules imported.')
 
 print(' Defining constants...')

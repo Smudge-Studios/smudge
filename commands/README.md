@@ -1,21 +1,6 @@
 # Commands
 A list of bot commands.
 
-## Quick Links
-[Utility](https://github.com/Smudge-Studios/smudge/tree/main/commands#utility)
-
-[Fun](https://github.com/Smudge-Studios/smudge/tree/main/commands#fun)
-
-[Economy](https://github.com/Smudge-Studios/smudge/tree/main/commands#economy)
-
-[Moderation](https://github.com/Smudge-Studios/smudge/tree/main/commands#moderation)
-
-[Server](https://github.com/Smudge-Studios/smudge/tree/main/commands#server)
-
-[Restricted](https://github.com/Smudge-Studios/smudge/tree/main/commands#restricted)
-
-[Other](https://github.com/Smudge-Studios/smudge/tree/main/commands#other)
-
 ## Utility
 These commands are for utility purposes and can be used by anybody.
 
@@ -121,8 +106,4 @@ These commands are restricted to the bot's owner.
 - `stop` - Shutdown the bot.
 
 ## Other
-These commands are mostly informational.
-
-- `help <command|cog>` - Displays a list of commands, or help on a specific command.
-
-- `info` - Information about the bot and the developer.
+WIP

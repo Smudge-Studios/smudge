@@ -26,7 +26,7 @@ class ErrorHandler(commands.Cog):
         # If the bot doesn't have enough permissions
         if isinstance(error, commands.BotMissingPermissions):
             perms = ', '.join(error.missing_perms)
-            await ctx.send(f"Sorry, I require the permissions `{perms}` to execute that command.")
+            await ctx.send(f"Sorry, I require the permissions `{perms}` to execute that command. Please contact a server administrator to fix this issue.")
 
         # If a user doesn't provide a required argument
         elif isinstance(error, commands.MissingRequiredArgument):
@@ -86,7 +86,7 @@ class ErrorHandler(commands.Cog):
         # If the user doesnt have enough permissions to run a command
         elif isinstance(error, commands.MissingPermissions):
             perms = ', '.join(error.missing_perms)
-            await ctx.send(f'Sorry, you need the permission `{perms}` to execute this command.')
+            await ctx.send(f'Sorry, you need the permission(s) `{perms}` to execute this command.')
             return
 
         # If the error is not recognized

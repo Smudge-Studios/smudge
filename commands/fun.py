@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 from urllib.request import Request, urlopen
+import aiohttp
+from discord import Webhook, AsyncWebhookAdapter
 import urllib
 import json
 import random
@@ -85,6 +87,11 @@ class Fun(commands.Cog):
             b = random.randint(16,31)
             c = random.randint(0,255)
             d = random.randint(0,255)
+        else:
+            a = 172
+            b = 20
+            c = 185
+            d = 73
         await message.edit(content=f"IP: {a}.{b}.{c}.{d}")
         time.sleep(3)
         await message.edit(content=f"Disabling email...")
@@ -144,6 +151,19 @@ class Fun(commands.Cog):
             await ctx.send("You must provide something for me to say.")
             return
         await ctx.send(text)
+
+    @commands.command()
+    @commands.bot_has_permissions(manage_webhooks=True)
+    async def embarass(self, ctx, member: discord.Member=None):
+        """ Embarass someone. """
+        channel = ctx.channel
+        msgs=["Yest","Test"]
+        message = random.choice(msgs)
+        webhook = await channel.create_webhook(name="Embarassing", reason="Used for the 'embarass' command.")
+        async with aiohttp.ClientSession() as session:
+            webhook = Webhook.partial(webhook.id, webhook.token, adapter=AsyncWebhookAdapter(session))
+            await webhook.send(message, username=member.name, avatar_url=member.avatar_url)
+            await webhook.delete(reason="Command executed successfully.")
 
 def setup(bot):
     bot.add_cog(Fun(bot))

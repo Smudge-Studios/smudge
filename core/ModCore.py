@@ -29,6 +29,8 @@ class Mod:
                     mod = guild.get_member(row[3])
                     raise error.Unable(f"That user is already banned. Moderator: {mod.name}. Reason: {row[2]}")
         cursor = conn.execute(f"SELECT * from PUNISHMENTS")
+        num = 0
+        total = 0
         for row in cursor:
             num = row[3]+1
             total = row[4]+1
@@ -49,6 +51,8 @@ class Mod:
         elif guild.owner == member:
             raise error.Unable(f"I cannot kick the guild's owner.")
         cursor = conn.execute(f"SELECT * from PUNISHMENTS")
+        num = 0
+        total = 0
         for row in cursor:
             num = row[2]+1
             total = row[4]+1
@@ -80,6 +84,8 @@ class Mod:
         if muterole in member.roles:
             raise error.Unable(f"{member.name} is already muted.")
         cursor = conn.execute(f"SELECT * from PUNISHMENTS")
+        num = 0
+        total = 0
         for row in cursor:
             num = row[1]+1
             total = row[4]+1
@@ -100,6 +106,8 @@ class Mod:
         elif guild.owner == member:
             raise error.Unable(f"I cannot warn the guild's owner.")
         cursor = conn.execute(f"SELECT * from PUNISHMENTS")
+        num = 0
+        total = 0
         for row in cursor:
             num = row[0]+1
             total = row[4]+1

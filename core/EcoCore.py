@@ -4,7 +4,7 @@ import random
 import sqlite3
 from core.Exceptions import *
 
-conn = sqlite3.connect('dbdata\\economy.db')
+conn = sqlite3.connect('data\\economy.db')
 
 class data:
     def read(self):
@@ -62,6 +62,7 @@ class wallet:
         """ Adds money to somebody's wallet. """
         file2.check(user)
         cursor = data.read()
+        bal = 0
         for row in cursor:
             if row[0] == user:
                 bal = row[1] + add
@@ -72,6 +73,7 @@ class wallet:
         """ Removes money from somebody's wallet. """
         file2.check(user)
         cursor = data.read()
+        bal = 0
         for row in cursor:
             if row[0] == user:
                 bal = row[1] + take
@@ -91,6 +93,7 @@ class bank:
         """ Adds money to someone's bank. """
         file2.check(user)
         cursor = data.read()
+        bal = 0
         for row in cursor:
             if row[0] == user:
                 bal = row[1] + add
@@ -101,6 +104,7 @@ class bank:
         """ Removes money from someone's bank. """
         file2.check(user)
         cursor = data.read()
+        bal = 0
         for row in cursor:
             if row[0] == user:
                 bal = row[1] - take

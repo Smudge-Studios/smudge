@@ -13,6 +13,7 @@ class UserJoin(commands.Cog):
     async def on_member_join(self, member):
         cursor = conn.execute("SELECT * from MUTES")
         guild = member.guild
+        muterole = None
         for row in cursor:
             if row[1] == member.id:
                 if row[0] == guild.id:
@@ -22,6 +23,8 @@ class UserJoin(commands.Cog):
                             if row[0] == guild.id:
                                 muterole = guild.get_role(row[1])
                         try:
+                            if muterole is None:
+                                raise discord.Forbidden('Muterole not found.')
                             await member.add_role(muterole)
                             try:
                                 await member.send(f"You were automatically muted in {guild.name}, as you have an unexpired mute in that server.")
