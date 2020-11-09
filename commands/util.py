@@ -3,6 +3,7 @@ from discord.ext import commands
 from core.UtilCore import *
 from core.Exceptions import *
 import datetime
+import random
 
 utils = Utils()
 
@@ -120,6 +121,83 @@ class Utility(commands.Cog):
 
         embed.set_image(url=guild.icon_url)
 
+    @commands.command()
+    @commands.has_guild_permissions(manage_guild=True)
+    async def poll(self, ctx, *, input: str=None):
+        """ Create a poll with a maximum of 5 answers.
+            Usage: poll question | option 1 | option 2 | etc. """
+        if input is None:
+            await ctx.send("Please provide a question and answers.")
+            return
+        a = '\N{REGIONAL INDICATOR SYMBOL LETTER A}'
+        b = '\N{REGIONAL INDICATOR SYMBOL LETTER B}'
+        c = '\N{REGIONAL INDICATOR SYMBOL LETTER C}'
+        d = '\N{REGIONAL INDICATOR SYMBOL LETTER D}'
+        e = '\N{REGIONAL INDICATOR SYMBOL LETTER E}'
+        try:
+            question, options = utils.poll(ctx, input)
+        except error.Unable as e:
+            await ctx.send(str(e))
+            return
+        msg = ''
+        if len(options) == 2:
+            msg = f'{a}: {options[0]}\n{b}: {options[1]}'
+        elif len(options) == 3:
+            msg = f'{a}: {options[0]}\n{b}: {options[1]}\n{c}: {options[2]}'
+        elif len(options) == 4:
+            msg = f'{a}: {options[0]}\n{b}: {options[1]}\n{c}: {options[2]}\n{d}: {options[3]}'
+        else:
+            msg = f'{a}: {options[0]}\n{b}: {options[1]}\n{c}: {options[2]}\n{d}: {options[3]}\n{e}: {options[4]}'
+        embed = discord.Embed(title=question, description = msg)
+        await ctx.message.delete()
+        try:
+            poll = await ctx.send(embed=embed)
+        except discord.Forbidden:
+            await ctx.author.send("Sorry, I cannot send/embed messages in that channel.")
+            return
+        try:
+            if len(options) == 2:
+                await poll.add_reaction(a)
+                await poll.add_reaction(b)
+            elif len(options) == 3:
+                await poll.add_reaction(a)
+                await poll.add_reaction(b)
+                await poll.add_reaction(c)
+            elif len(options) == 4:
+                await poll.add_reaction(a)
+                await poll.add_reaction(b)
+                await poll.add_reaction(c)
+                await poll.add_reaction(d)
+            else:
+                await poll.add_reaction(a)
+                await poll.add_reaction(b)
+                await poll.add_reaction(c)
+                await poll.add_reaction(d)
+                await poll.add_reaction(e)
+        except discord.Forbidden:
+            await poll.edit("Sorry, I cannot add reactions in this channel.")
+
+    @commands.command()
+    @commands.has_guild_permissions(manage_guild=True)
+    async def quickpoll(self, ctx, *, question):
+        """ Create a quick and simple yes/no poll. """
+        if input is None:
+            await ctx.send("Please provide a question and answers.")
+            return
+        yes = "\N{THUMBS UP SIGN}"
+        no = "\N{THUMBS DOWN SIGN}"
+        color = random.randint(10000, 99999)
+        embed = discord.Embed(title=question, description=f"{yes}: Yes\n{no}: No", color=color)
+        try:
+            poll = await ctx.send(embed=embed)
+        except discord.Forbidden:
+            await ctx.author.send("Sorry, I cannot send/embed messages in that channel.")
+            return
+        try:
+            await poll.add_reaction(yes)
+            await poll.add_reaction(no)
+        except discord.Forbidden:
+            await poll.edit("Sorry, I cannot add reactions in this channel.")
 
 def setup(bot):
     bot.add_cog(Utility(bot))

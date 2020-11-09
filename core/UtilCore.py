@@ -1,5 +1,6 @@
 from core.Exceptions import *
 import sqlite3
+import time
 
 conn = sqlite3.connect('data\\config.db')
 
@@ -27,3 +28,13 @@ class Utils:
                 if channel == None:
                     raise error.Unable("This guild does not have a suggestion channel set.")
                 return channel
+
+    def poll(self, input):
+        options = input.split('|')
+        question = options[0]
+        options = options.remove(options[0]) 
+        if len(options) > 5:
+            raise error.Unable("Sorry, you may only use 5 answers.")
+        elif len(options) <= 1:
+            raise error.Unable("Please specify more than one option.")
+        return question, options

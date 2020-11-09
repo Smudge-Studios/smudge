@@ -143,3 +143,6 @@ Fetches the report channel for the guild you are currently in.
 
 ### suggestchannel(ctx)
 Fetches the suggestions channel for the guild you are currently in.
+
+### poll(input)
+Returns a question and a list of options for the poll command.

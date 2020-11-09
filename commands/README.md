@@ -14,6 +14,10 @@ These commands are for utility purposes and can be used by anybody.
 
 - `serverinfo` - Displays information on the guild the command was ran in.
 
+- `poll <question | options>` - Creates an embed poll. Different questions should be seperated with pipes. (|)
+
+- `quickpoll <question>` - Creates a simple yes/no question.
+
 ## Fun
 These commands are purely for fun and can be used by all users.
 

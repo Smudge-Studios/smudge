@@ -152,18 +152,5 @@ class Fun(commands.Cog):
             return
         await ctx.send(text)
 
-    @commands.command()
-    @commands.bot_has_permissions(manage_webhooks=True)
-    async def embarass(self, ctx, member: discord.Member=None):
-        """ Embarass someone. """
-        channel = ctx.channel
-        msgs=["Yest","Test"]
-        message = random.choice(msgs)
-        webhook = await channel.create_webhook(name="Embarassing", reason="Used for the 'embarass' command.")
-        async with aiohttp.ClientSession() as session:
-            webhook = Webhook.partial(webhook.id, webhook.token, adapter=AsyncWebhookAdapter(session))
-            await webhook.send(message, username=member.name, avatar_url=member.avatar_url)
-            await webhook.delete(reason="Command executed successfully.")
-
 def setup(bot):
     bot.add_cog(Fun(bot))
