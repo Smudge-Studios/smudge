@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
-import sqlite3
+from core.UtilCore import Utils
 
-conn = sqlite3.connect('data\\config.db')
+utils = Utils()
 
 class Server(commands.Cog):
     def __init__(self, bot):
@@ -17,9 +17,7 @@ class Server(commands.Cog):
         elif prefix == '':
             await ctx.send("Invalid argument. Please omit any quotes in the command.")
             return
-        guild = ctx.guild.id
-        conn.execute(f"UPDATE CONFIG set PREFIX = {prefix} where GUILD = {guild}")
-        conn.commit()
+        utils.setprefix(ctx, prefix)
         await ctx.send(f'Successfully changed the server prefix to `{prefix}`')
 
     @commands.command()
@@ -43,28 +41,19 @@ class Server(commands.Cog):
                 return
             await ctx.send(f"Text channel created. (<#{channel.id}>)")
         elif channel.lower() == 'remove':
-            conn.execute(f"UPDATE COUNTING set CHANNEL = Null where GUILD = {guild.id}")
+            utils.setcountingchannel(ctx, 'remove')
             await ctx.send("Successfully removed counting channel from the database.")
+            return
         else:
             try:
-                channel = guild.get_channel(int(channel.replace('<@','').replace('>','')))
+                channel = ctx.guild.get_channel(int(channel.replace('<#','').replace('>','')))
             except ValueError:
-                await ctx.send('Invalid channel.')
+                await ctx.send("Couldn't find that channel.")
                 return
             if channel == None:
                 await ctx.send("Couldn't find that channel.")
                 return
-        cursor = conn.execute("SELECT * from COUNTING")
-        try:
-            for row in cursor:
-                if row[0] == ctx.guild.id:
-                    conn.execute(f"UPDATE COUNTING set CHANNEL = {channel.id} where GUILD = {guild.id}")
-                    break
-            raise ValueError
-        except ValueError:
-            conn.execute(f"INSERT INTO COUNTING (GUILD,CHANNEL,NUMBER) \
-                VALUES ({ctx.guild.id}, {channel.id}, 0)")
-        conn.commit()
+        utils.setcountingchannel(ctx, channel)
         await ctx.send(f'Successfully set counting channel to <#{channel.id}>.')
 
     @commands.command(aliases=['suggestchannel','sc'])
@@ -88,23 +77,19 @@ class Server(commands.Cog):
                 return
             await ctx.send(f"Text channel created. (<#{channel.id}>)")
         elif channel.lower() == 'remove':
-            conn.execute(f"UPDATE CONFIG set SUGGESTIONS = Null where GUILD = {guild.id}")
-            await ctx.send("Successfully removed counting channel from the database.")
+            utils.setsuggestionchannel(ctx, 'remove')
+            await ctx.send("Successfully removed suggestion channel from the database.")
+            return
         else:
             try:
-                channel = guild.get_channel(int(channel.replace('<@','').replace('>','')))
+                channel = ctx.guild.get_channel(int(channel.replace('<#','').replace('>','')))
             except ValueError:
-                await ctx.send('Invalid channel.')
+                await ctx.send("Couldn't find that channel.")
                 return
             if channel == None:
                 await ctx.send("Couldn't find that channel.")
                 return
-        cursor = conn.execute("SELECT * from CONFIG")
-        for row in cursor:
-            if row[0] == ctx.guild.id:
-                conn.execute(f"UPDATE CONFIG set SUGGESTIONS = {channel.id} where GUILD = {guild.id}")
-                break
-        conn.commit()
+        utils.setsuggestionchannel(ctx, channel)
         await ctx.send(f'Successfully set suggestion channel to <#{channel.id}>.')
 
     @commands.command(aliases=['reportschannel','rc'])
@@ -128,24 +113,20 @@ class Server(commands.Cog):
                 return
             await ctx.send(f"Text channel created. (<#{channel.id}>)")
         elif channel.lower() == 'remove':
-            conn.execute(f"UPDATE CONFIG set REPORTS = Null where GUILD = {guild.id}")
-            await ctx.send("Successfully removed counting channel from the database.")
+            utils.setreportchannel(ctx, 'remove')
+            await ctx.send("Successfully removed reports channel from the database.")
+            return
         else:
             try:
-                channel = guild.get_channel(int(channel.replace('<@','').replace('>','')))
+                channel = ctx.guild.get_channel(int(channel.replace('<#','').replace('>','')))
             except ValueError:
-                await ctx.send('Invalid channel.')
+                await ctx.send("Couldn't find that channel.")
                 return
             if channel == None:
                 await ctx.send("Couldn't find that channel.")
                 return
-        cursor = conn.execute("SELECT * from CONFIG")
-        for row in cursor:
-            if row[0] == ctx.guild.id:
-                conn.execute(f"UPDATE CONFIG set REPORTS = {channel.id} where GUILD = {guild.id}")
-                break
-        conn.commit()
-        await ctx.send(f'Successfully set suggestion channel to <#{channel.id}>.')
+        utils.setreportchannel(ctx, channel)
+        await ctx.send(f'Successfully set reports channel to <#{channel.id}>.')
 
 def setup(bot):
     bot.add_cog(Server(bot))

@@ -11,7 +11,7 @@ class data:
         """ Reads the database. """
         return conn.execute("SELECT * from ECONOMY")
 
-    def save(self, data):
+    def save(self):
         """ Saves all changed data to the database. """
         conn.commit()
 
@@ -76,7 +76,7 @@ class wallet:
         bal = 0
         for row in cursor:
             if row[0] == user:
-                bal = row[1] + take
+                bal = row[1] - take
         conn.execute(f"UPDATE ECONOMY set WALLET = {bal} where USER = {user}")
         data.save()
 
@@ -96,7 +96,7 @@ class bank:
         bal = 0
         for row in cursor:
             if row[0] == user:
-                bal = row[1] + add
+                bal = row[2] + add
         conn.execute(f"UPDATE ECONOMY set BANK = {bal} where USER = {user}")
         data.save()
 
@@ -107,7 +107,8 @@ class bank:
         bal = 0
         for row in cursor:
             if row[0] == user:
-                bal = row[1] - take
+                bal = row[2] - take
+                print(bal)
         conn.execute(f"UPDATE ECONOMY set BANK = {bal} where USER = {user}")
         data.save()
         pass
@@ -119,8 +120,11 @@ class Eco:
     def deposit(self, user, amount):
         """ Deposits money from somebody's wallet to their bank. """
         bal = wallet.get(user)
+
         if bal < amount:
             raise error.NEMU
+        elif bal == 0:
+            raise error.FAIL
         wallet.remove(user, amount)
         bank.add(user, amount)
 
@@ -129,6 +133,8 @@ class Eco:
         bal = bank.get(user)
         if bal < amount:
             raise error.NEMU
+        elif bal == 0:
+            raise error.FAIL
         bank.remove(user, amount)
         wallet.add(user, amount)
 

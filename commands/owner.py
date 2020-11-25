@@ -10,7 +10,7 @@ class Restricted(commands.Cog):
         self.bot = bot
 
     async def cog_check(self, ctx):
-        """Cog check. Checks is owner invoked cog."""
+        """Cog check. Checks if owner invoked cog."""
         if await self.bot.is_owner(ctx.author):
             return True
         raise commands.NotOwner()
@@ -41,21 +41,21 @@ class Restricted(commands.Cog):
         reason = ' '.join(reason)
         if reason == '':
             reason = 'None'
-        cursor = conn.execute("SELECT * from ECONOMY")
+        cursor = conn.execute("SELECT * from BLACKLIST")
         try:
             for row in cursor:
                 if row[0] == member.id:
                     raise error.UNABLE
         except error.UNABLE:
-            await ctx.send(f"`{member.name}` is already blacklisted. Reason: `{reason}`.")
+            await ctx.send(f"`{member}` is already blacklisted. Reason: `{reason}`.")
             return
         else:
             conn.execute(f"INSERT INTO BLACKLIST (USER,REASON) \
-                    VALUES ({member.id}, {reason})")
+                    VALUES ({member.id}, '{reason}')")
             conn.commit()
-            await ctx.send(f"Successfully blacklisted `{member.name}`. Reason: `{reason}`")
-            await member.send(f"You were blacklisted from using my economy by `{ctx.author.name}`. Reason: `{reason}`")
-            print(f'{ctx.author.name} blacklisted {member.name}. Reason: {reason}')
+            await ctx.send(f"Successfully blacklisted `{member}`. Reason: `{reason}`")
+            await member.send(f"You were blacklisted from using my economy by `{ctx.author}`. Reason: `{reason}`")
+            print(f'{ctx.author} blacklisted {member}. Reason: {reason}')
 
     @commands.command(aliases=['unblist'])
     async def unblacklist(self, ctx, member: discord.Member=None):
@@ -71,9 +71,9 @@ class Restricted(commands.Cog):
             else:
                 raise e
         conn.commit()
-        await ctx.send(f"Successfully unblacklisted `{member.name}`.")
-        await member.send(f"You were removed from my blacklist by `{ctx.author.name}`. You should now be able to use my economy.")
-        print(f'{ctx.author.name} unblacklisted {member.name}')
+        await ctx.send(f"Successfully unblacklisted `{member}`.")
+        await member.send(f"You were removed from my blacklist by `{ctx.author}`. You should now be able to use my economy.")
+        print(f'{ctx.author} unblacklisted {member}')
 
     @commands.command(aliases=['amoney'])
     async def addmoney(self, ctx, member: discord.Member=None, money: str=None, location: str='wallet'):
@@ -94,7 +94,7 @@ class Restricted(commands.Cog):
             wallet.add(member.id, money)
         elif location == 'bank':
             bank.add(member.id, money)
-        await ctx.send(f"Added ${money} to {member.name}'s {location}.")
+        await ctx.send(f"Added ${money} to {member}'s {location}.")
 
     @commands.command(aliases=['remmoney','remony','rmoney'])
     async def removemoney(self, ctx, member: discord.Member=None, money: str=None, location: str='wallet'):
@@ -115,13 +115,13 @@ class Restricted(commands.Cog):
             wallet.remove(member.id, money)
         elif location == 'bank':
             bank.remove(member.id, money)
-        await ctx.send(f"Removed ${money} from {member.name}'s {location}.")
+        await ctx.send(f"Removed ${money} from {member}'s {location}.")
 
     @commands.command()
     async def unload(self, ctx, *, cog: str):
         """Unload an extension.
         Remember to use dot path. e.g: cogs.owner"""
-        print(f'{ctx.author.name} ({ctx.author.id}) is attempting to unload extension {cog}...')
+        print(f'{ctx.author} ({ctx.author.id}) is attempting to unload extension {cog}...')
         try:
             self.bot.unload_extension(cog)
             print(f'Successfully unloaded extension {cog}.')
@@ -137,7 +137,7 @@ class Restricted(commands.Cog):
     async def load(self, ctx, *, cog: str):
         """Load an extension.
         Remember to use dot path. e.g: cogs.owner"""
-        print(f'{ctx.author.name} ({ctx.author.id}) is attempting to load extension {cog}...')
+        print(f'{ctx.author} ({ctx.author.id}) is attempting to load extension {cog}...')
         try:
             self.bot.load_extension(cog)
             print(f'Successfully loaded extension {cog}.')

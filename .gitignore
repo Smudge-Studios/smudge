@@ -6,3 +6,7 @@ core/__pycache__/**.pyc
 data/**.json
 .vscode/**.json
 data/**.db
+config.ini
+data/*.db
+data/*.db-journal
+

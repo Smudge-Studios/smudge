@@ -85,6 +85,8 @@ class Economy(commands.Cog):
         except error.NEMU:
             embed = discord.Embed(title=f"Deposit", description=f'Insufficient funds.', color=0xff0000)
             await ctx.send(embed=embed)
+        except error.FAIL:
+            await ctx.send("Nothing to deposit.")
 
     @commands.command(aliases=['with'])
     async def withdraw(self, ctx, amnt):
@@ -114,6 +116,8 @@ class Economy(commands.Cog):
         except error.NEMU:
             embed = discord.Embed(title=f"Deposit", description=f'Insufficient funds.', color=0xff0000)
             await ctx.send(embed=embed)
+        except error.FAIL:
+            await ctx.send("Nothing to withdraw.")
 
     @commands.command()
     @commands.cooldown(1, 3600, commands.BucketType.user)

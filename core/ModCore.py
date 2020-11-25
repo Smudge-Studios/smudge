@@ -1,6 +1,7 @@
 import sqlite3
 import asyncio
 from core.Exceptions import *
+import time
 
 loop = asyncio.get_event_loop()
 time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}
@@ -11,17 +12,12 @@ def ord(n):
 
 class Mod:
     def gettime(self, time):
+        if time is None:
+            return None
         return int(time[:-1]) * time_convert[time[-1]]
 
     def ban(self, ctx, member, reason, duration):
         guild = ctx.guild
-        mempos = member.top_role.position
-        me = guild.get_member(self.bot.user.id)
-        mepos = me.top_role.position
-        if mempos >= mepos:
-            raise error.Unable(f"Unable to ban {member.name} due to role hierarchy.")
-        elif guild.owner == member:
-            raise error.Unable(f"I cannot ban the guild's owner.")
         cursor = conn.execute("SELECT * from BANS")
         for row in cursor:
             if row[2] == member.id:
@@ -37,19 +33,12 @@ class Mod:
         conn.execute(f"UPDATE PUNISHMENTS set BANS = {num}")
         conn.execute(f"UPDATE PUNISHMENTS set TOTAL = {total}")
         conn.execute(f"INSERT INTO BANS (GUILD,USER,REASON,MOD,ID,EXPIRES,EXPIRED) \
-                    VALUES ({guild.id}, {member.id}, {reason}, {ctx.author.id}, {total}, {duration}, FALSE)")
+                    VALUES ('{guild.id}', '{member.id}', '{reason}', '{ctx.author.id}', '{total}', '{duration}', FALSE)")
         conn.commit()
         return True
 
     def kick(self, ctx, member, reason):
         guild = ctx.guild
-        mempos = member.top_role.position
-        me = guild.get_member(self.bot.user.id)
-        mepos = me.top_role.position
-        if mempos >= mepos:
-            raise error.Unable(f"Unable to kick {member.name} due to role hierarchy.")
-        elif guild.owner == member:
-            raise error.Unable(f"I cannot kick the guild's owner.")
         cursor = conn.execute(f"SELECT * from PUNISHMENTS")
         num = 0
         total = 0
@@ -59,28 +48,21 @@ class Mod:
         conn.execute(f"UPDATE PUNISHMENTS set KICKS = {num}")
         conn.execute(f"UPDATE PUNISHMENTS set TOTAL = {total}")
         conn.execute(f"INSERT INTO KICKS (GUILD,USER,REASON,MOD,ID) \
-                    VALUES ({guild.id}, {member.id}, {reason}, {ctx.author.id}, {total})")
+                    VALUES ('{guild.id}', '{member.id}', '{reason}', '{ctx.author.id}', '{total}')")
         conn.commit()
         return True
     
     def mute(self, ctx, member, reason, duration):
         guild = ctx.guild
-        mempos = member.top_role.position
-        me = guild.get_member(self.bot.user.id)
-        mepos = me.top_role.position
-        if mempos >= mepos:
-            raise error.Unable(f"Unable to mute {member.name} due to role hierarchy.")
-        elif guild.owner == member:
-            raise error.Unable(f"I cannot mute the guild's owner.")
         cursor = conn.execute(f"SELECT * from CONFIG where GUILD = {guild.id}")
         muterole = None
         for row in cursor:
             if row[0] == ctx.guild.id:
                 muterole = row[1]
                 break
+        muterole = guild.get_role(muterole)
         if muterole is None:
             raise error.Unable(f"This server doesn't have a muterole. Please set one with the `muterole` command.")
-        muterole = guild.get_role(muterole)
         if muterole in member.roles:
             raise error.Unable(f"{member.name} is already muted.")
         cursor = conn.execute(f"SELECT * from PUNISHMENTS")
@@ -91,20 +73,13 @@ class Mod:
             total = row[4]+1
         conn.execute(f"UPDATE PUNISHMENTS set MUTES = {num}")
         conn.execute(f"UPDATE PUNISHMENTS set TOTAL = {total}")
-        conn.execute(f"INSERT INTO MUTES (GUILD,USER,REASON,MOD,ID,EXPIRES,EXPIRED) \
-                    VALUES ({guild.id}, {member.id}, {reason}, {ctx.author.id}, {total}, {duration}, FALSE)")
+        conn.execute(f"INSERT INTO MUTES (GUILD, USER, REASON, MOD, ID, EXPIRES, EXPIRED) \
+                  VALUES ('{guild.id}', '{member.id}', '{reason}', '{ctx.author.id}', '{total}', '{duration}', False)")
         conn.commit()
         return muterole
 
     def warn(self, ctx, member, reason):
         guild = ctx.guild
-        mempos = member.top_role.position
-        me = guild.get_member(self.bot.user.id)
-        mepos = me.top_role.position
-        if mempos >= mepos:
-            raise error.Unable(f"Unable to warn {member.name} due to role hierarchy.")
-        elif guild.owner == member:
-            raise error.Unable(f"I cannot warn the guild's owner.")
         cursor = conn.execute(f"SELECT * from PUNISHMENTS")
         num = 0
         total = 0
@@ -113,8 +88,8 @@ class Mod:
             total = row[4]+1
         conn.execute(f"UPDATE PUNISHMENTS set WARNS = {num}")
         conn.execute(f"UPDATE PUNISHMENTS set TOTAL = {total}")
-        conn.execute(f"INSERT INTO WARNS (GUILD,USER,REASON,MOD,ID) \
-                    VALUES ({guild.id}, {member.id}, {reason}, {ctx.author.id}, {total})")
+        conn.execute(f"INSERT INTO WARNS (GUILD, USER, REASON, MOD, ID) \
+                  VALUES ('{guild.id}', '{member.id}', '{reason}', '{ctx.author.id}', '{total}')")
         conn.commit()
         cursor = conn.execute(f"SELECT * from WARNS where USER = {member.id} and GUILD = {guild.id}")
         warns = 0
@@ -129,6 +104,25 @@ class Mod:
         conn.execute(f"UPDATE BANS set EXPIRED = TRUE where USER = {member.id} and GUILD = {guild.id}")
         conn.commit()
         return True
+
+    def autounban(self):
+        cursor = conn.execute("SELECT * from BANS")
+        now = int(time.time())
+        guilds = []
+        members = []
+        try:
+            for row in cursor:
+                if row[5] != 'Permanent':
+                    if row[5] <= now:
+                        if row[6] is not True:
+                            conn.execute(f"UPDATE BANS set EXPIRED = TRUE where USER = {row[1]}")
+                            guild = row[0]
+                            member = row[1]
+                            guilds.append(guild)
+                            members.append(member)
+                return guilds, members
+        except Exception as e:
+            print(f"Couldn't check unmutes: {e}")
 
     def unmute(self, ctx, member):
         guild = ctx.guild
@@ -147,6 +141,32 @@ class Mod:
         conn.commit()
         return muterole
 
+    def autounmute(self):
+        cursor = conn.execute("SELECT * from MUTES")
+        now = int(time.time())
+        guilds = []
+        members = []
+        roles = []
+        try:
+            for row in cursor:
+                if row[5] != 'Permanent':
+                    if row[5] <= now:
+                        if row[6] is not True:
+                            conn.execute(f"UPDATE MUTES set EXPIRED = TRUE where USER = {row[1]}")
+                            cursor2 = conn.execute("SELECT * from CONFIG")
+                            guild = row[0]
+                            member = row[1]
+                            for row in cursor2:
+                                if row[0] == guild:
+                                    muterole = row[1]
+                                    break
+                            guilds.append(guild)
+                            members.append(member)
+                            roles.append(muterole)
+                return guilds, members, roles
+        except Exception as e:
+            print(f"Couldn't check unmutes: {e}")
+                        
     def fetchpunishlist(self, ctx, member, type):
         guild = ctx.guild
         p = ["BANS", "WARNS", "MUTES", "KICKS"]
@@ -163,9 +183,9 @@ class Mod:
                 for row in cursor:
                     if row[0] == ctx.guild.id:
                         if row[1] == member.id:
-                            reasons = reasons.append(row[2])
-                            ids = ids.append(row[4])
-                            types = types.append(i)
+                            reasons.append(row[2])
+                            ids.append(row[4])
+                            types.append(i)
             if len(ids) == 0:
                 raise error.Unable(f"{member.name} has no punishments.")
             return ids, reasons, types
@@ -173,9 +193,9 @@ class Mod:
         for row in cursor:
             if row[0] == ctx.guild.id:
                 if row[1] == member.id:
-                    reasons = reasons.append(row[2])
-                    ids = ids.append(row[4])
-                    types = types.append(type)
+                    reasons.append(row[2])
+                    ids.append(row[4])
+                    types.append(type)
         return ids, reasons, types               
 
     def fetchpunish(self, ctx, id):

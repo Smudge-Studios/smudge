@@ -17,6 +17,26 @@ class Utils:
                     raise error.Unable("This guild does not have a report channel set.")
                 return channel
 
+    def setreportchannel(self, ctx, channel):
+        guild = ctx.guild
+        if channel == 'remove':
+            conn.execute(f"UPDATE CONFIG set REPORTS = Null where GUILD = {guild.id}")
+        else:
+            cursor = conn.execute("SELECT * from CONFIG")
+            try:
+                cr = True
+                for row in cursor:
+                    if row[0] == ctx.guild.id:
+                        conn.execute(f"UPDATE CONFIG set REPORTS = {channel.id} where GUILD = {guild.id}")
+                        cr = False
+                        break
+                if cr==True:
+                    raise ValueError
+            except ValueError:
+                conn.execute(f"INSERT INTO CONFIG (GUILD,PREFIX,REPORTS) \
+                    VALUES ({ctx.guild.id}, '>', {channel.id})")
+        conn.commit()
+
     def suggestchannel(self, ctx):
         guild = ctx.guild
         cursor = conn.execute(f"SELECT * from CONFIG where GUILD = {guild.id}")
@@ -29,10 +49,71 @@ class Utils:
                     raise error.Unable("This guild does not have a suggestion channel set.")
                 return channel
 
+    def setsuggestionchannel(self, ctx, channel):
+        guild = ctx.guild
+        if channel == 'remove':
+            conn.execute(f"UPDATE CONFIG set SUGGESTIONS = Null where GUILD = {guild.id}")
+        else:
+            cursor = conn.execute("SELECT * from CONFIG")
+            try:
+                cr = True
+                for row in cursor:
+                    if row[0] == ctx.guild.id:
+                        conn.execute(f"UPDATE CONFIG set SUGGESTIONS = {channel.id} where GUILD = {guild.id}")
+                        cr = False
+                        break
+                if cr==True:
+                    raise ValueError
+            except ValueError:
+                conn.execute(f"INSERT INTO CONFIG (GUILD,PREFIX,SUGGESTIONS) \
+                    VALUES ({ctx.guild.id}, '>', {channel.id})")
+        conn.commit()
+
+    def setcountingchannel(self, ctx, channel):
+        guild = ctx.guild
+        if channel == 'remove':
+            conn.execute(f"UPDATE COUNTING set CHANNEL = Null where GUILD = {guild.id}")
+        else:
+            cursor = conn.execute("SELECT * from COUNTING")
+            try:
+                cr = True
+                for row in cursor:
+                    if row[0] == ctx.guild.id:
+                        conn.execute(f"UPDATE COUNTING set CHANNEL = {channel.id} where GUILD = {guild.id}")
+                        cr = False
+                        break
+                if cr==True:
+                    raise ValueError
+            except ValueError:
+                conn.execute(f"INSERT INTO COUNTING (GUILD,CHANNEL,NUMBER) \
+                    VALUES ({ctx.guild.id}, {channel.id}, 0)")
+        conn.commit()
+
+    def setprefix(self, ctx, prefix):
+        guild = ctx.guild.id
+        conn.execute(f"UPDATE CONFIG set PREFIX = '{prefix}' where GUILD = {guild}")
+        conn.commit()
+
+    def get_prefix(self, bot, message):
+        """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
+        cursor = conn.execute("SELECT * from CONFIG")
+        for row in cursor:
+            if row[0] == message.guild.id:
+                return row[1]
+        else:
+            conn.execute(f"INSERT INTO COUNTING (GUILD) \
+                VALUES ({message.guild.id})")
+            conn.execute(f"INSERT INTO CONFIG (GUILD, PREFIX) \
+                VALUES ({message.guild.id}, '>')")
+            return(">")
+
     def poll(self, input):
         options = input.split('|')
         question = options[0]
-        options = options.remove(options[0]) 
+        options.remove(question)
+        for a in options:
+            if a == '':
+                options.remove(a)
         if len(options) > 5:
             raise error.Unable("Sorry, you may only use 5 answers.")
         elif len(options) <= 1:

@@ -46,8 +46,8 @@ class Utility(commands.Cog):
             url = ctx.message.jump_url
         else:
             url = msg.jump_url
-        embed = discord.Embed(title="User Report", description=f"User: <@{member.id}>\nReason:{reason}\n[Jump to message]({url})")
-        embed.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=f"{ctx.author.avatar_url}")
+        embed = discord.Embed(title="User Report", description=f"User: {member}\nReason: {reason}\n[Jump to message]({url})")
+        embed.set_author(name=f"{ctx.author}", icon_url=f"{ctx.author.avatar_url}")
         try:
             await channel.send(embed=embed)
             r = await ctx.send("Thank you, I have forwarded your report to server staff.")
@@ -63,7 +63,6 @@ class Utility(commands.Cog):
             return
         try:
             channel = utils.suggestchannel(ctx)
-            channel = ctx.guild.get_channel(channel)
         except error.Unable as e:
             await ctx.send(str(e))
             return
@@ -78,7 +77,7 @@ class Utility(commands.Cog):
             return
         await ctx.send(f"Thank you for your suggestion, it has been posted in <#{channel.id}>")
 
-    @commands.command('memberinfo')
+    @commands.command(aliases=['memberinfo'])
     async def userinfo(self, ctx, member: discord.Member=None):
         """ Displays information on a user, or yourself if no user is specified. """
         if member is None:
@@ -94,11 +93,12 @@ class Utility(commands.Cog):
         day = created.day
         embed.add_field(name="Created at", value=f"{month}/{day}/{year}")
         joined = member.joined_at
-        year = created.year
-        month = created.month
-        day = created.day
+        year = joined.year
+        month = joined.month
+        day = joined.day
         embed.add_field(name="Joined at", value=f"{month}/{day}/{year}")
         embed.set_thumbnail(url=member.avatar_url)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=['guildinfo'])
     async def serverinfo(self, ctx):
@@ -110,7 +110,7 @@ class Utility(commands.Cog):
         embed.add_field(name="Owner", value=f"{guild.owner.name}#{guild.owner.discriminator}", inline=True)
         
         embed.add_field(name="Members", value=str(guild.member_count), inline=True)
-        embed.add_field(name="Roles", value=str(len(guild.member_count)), inline=True)
+        embed.add_field(name="Roles", value=str(len(guild.roles)), inline=True)
         embed.add_field(name="Channels", value=str(len(guild.channels)), inline=True)
         
         embed.add_field(name="Boost Level", value=str(guild.premium_tier), inline=True)
@@ -119,7 +119,8 @@ class Utility(commands.Cog):
         
         embed.add_field(name="Region", value=guild.region, inline=True)
 
-        embed.set_image(url=guild.icon_url)
+        embed.set_thumbnail(url=guild.icon_url)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_guild_permissions(manage_guild=True)
@@ -135,21 +136,20 @@ class Utility(commands.Cog):
         d = '\N{REGIONAL INDICATOR SYMBOL LETTER D}'
         e = '\N{REGIONAL INDICATOR SYMBOL LETTER E}'
         try:
-            question, options = utils.poll(ctx, input)
+            question, options = utils.poll(input)
         except error.Unable as e:
             await ctx.send(str(e))
             return
-        msg = ''
+        msg = f'{question}\n\n'
         if len(options) == 2:
-            msg = f'{a}: {options[0]}\n{b}: {options[1]}'
+            msg = msg+f'{a}: {options[0]}\n{b}: {options[1]}'
         elif len(options) == 3:
-            msg = f'{a}: {options[0]}\n{b}: {options[1]}\n{c}: {options[2]}'
+            msg = msg+f'{a}: {options[0]}\n{b}: {options[1]}\n{c}: {options[2]}'
         elif len(options) == 4:
-            msg = f'{a}: {options[0]}\n{b}: {options[1]}\n{c}: {options[2]}\n{d}: {options[3]}'
+            msg = msg+f'{a}: {options[0]}\n{b}: {options[1]}\n{c}: {options[2]}\n{d}: {options[3]}'
         else:
-            msg = f'{a}: {options[0]}\n{b}: {options[1]}\n{c}: {options[2]}\n{d}: {options[3]}\n{e}: {options[4]}'
-        embed = discord.Embed(title=question, description = msg)
-        await ctx.message.delete()
+            msg = msg+f'{a}: {options[0]}\n{b}: {options[1]}\n{c}: {options[2]}\n{d}: {options[3]}\n{e}: {options[4]}'
+        embed = discord.Embed(title="Poll", description = msg)
         try:
             poll = await ctx.send(embed=embed)
         except discord.Forbidden:

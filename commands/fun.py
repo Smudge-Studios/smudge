@@ -145,7 +145,7 @@ class Fun(commands.Cog):
         await ctx.send(f"""。　　　　•　 　ﾟ　　。。　　　　•　 　ﾟ　　。\n　　.　　　.　　　 　　.　　　　　。　　 。　.\n　.　 。　 ඞ 。　 . •。　　　　•　 　ﾟ　　。。　\n。　。•{imposter} {yn} An Imposter •. 。　.。　\n。　　　　•　 　ﾟ　　。。　　　　•　 　ﾟ　　。\n　　.　　　.　　　 　　.　　　　　。　　 。　.\n　.　 。　  。　 . •。　　　　•　 　ﾟ　　。。 . •。""")
 
     @commands.command()
-    async def say(self, ctx, text: str=None):
+    async def say(self, ctx, *, text: str=None):
         """ Make the bot say something. """
         if text is None:
             await ctx.send("You must provide something for me to say.")

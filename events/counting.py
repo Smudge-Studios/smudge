@@ -18,13 +18,20 @@ class Counting(commands.Cog):
                     try:
                         msg = int(message.content)
                     except ValueError:
-                        await message.delete()
+                        try:
+                            await message.delete()
+                        except discord.Forbidden:
+                            await ctx.send()
+                            return
                         return
                     if msg == row[2]+1:
                         conn.execute(f"UPDATE COUNTING set NUMBER = {msg} where GUILD = {guild.id}")
                         return
                     else:
-                        await message.delete()
+                        try:
+                            await message.delete()
+                        except discord.Forbidden:
+                            return
 
 def setup(bot):
     bot.add_cog(Counting(bot))

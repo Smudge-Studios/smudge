@@ -1,3 +1,4 @@
+from typing import Type
 from core.ModCore import *
 import discord
 from discord.ext import commands
@@ -11,39 +12,37 @@ class Moderation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @commands.command
+    @commands.command()
     @commands.has_guild_permissions(manage_guild=True)
     async def muterole(self, ctx, role, name: str=None):
         """ Specify a mute role, or have the bot create one. """
         guild = ctx.guild
         muterole = None
         if role.lower() == 'create':
-            if name == None:
-                await ctx.send('Please specify the name for your mute role.')
-                return
-            fail = 0
-            success = 0
-            try:
-                perms = discord.Permissions(send_messages=False, read_messages=True)
-                muterole = await guild.create_role(name=name, permissions=perms, reason=f"Muterole requested by {ctx.author.name}")
-                await ctx.send(f"Muterole created.")
-                for channel in guild.channels:
-                    try:
-                        perms = channel.overwrites_for(muterole)
-                        perms.send_messages = False
-                        await channel.set_permissions(muterole, overwrites=perms, reason=f'MuteRole overwrites for role {muterole.name}.')
-                        success = success+1
-                    except discord.Forbidden:
-                        fail = fail+1
-            except discord.Forbidden:
-                await ctx.send("Sorry, I do not have enough permissions to create roles.")
-                return
-            await ctx.send(f"Muterole overwrites were created in {success} channels. {fail} channels were skipped.")
+            async with ctx.channel.typing():
+                if name == None:
+                    await ctx.send('Please specify the name for your mute role.')
+                    return
+                fail = 0
+                success = 0
+                try:
+                    perms = discord.Permissions(send_messages=False, read_messages=True)
+                    muterole = await guild.create_role(name=name, permissions=perms, reason=f"Muterole requested by {ctx.author}")
+                    for channel in guild.channels:
+                        try:
+                            await channel.set_permissions(muterole, send_messages=False, reason=f"Muterole Overwrites requested by {ctx.author}")
+                            success = success+1
+                        except discord.Forbidden:
+                            fail = fail+1
+                except discord.Forbidden:
+                    await ctx.send("Sorry, I do not have enough permissions to create roles.")
+                    return
+                await ctx.send(f"Muterole created with overwrites in {success} channels. {fail} channels were skipped.")
         else:
             yes = False
-            for role in guild.roles:
-                if role.name == role:
-                    muterole = role
+            for role1 in guild.roles:
+                if role1.name == role:
+                    muterole = role1
                     yes = True
                     break
                 yes = False
@@ -59,6 +58,7 @@ class Moderation(commands.Cog):
         try:
             i = False
             for row in cursor:
+                print(row[0])
                 if row[0] == ctx.guild.id:
                     conn.execute(f"UPDATE CONFIG set MUTEROLE = {muterole.id} where GUILD = {guild.id}")
                     i = True
@@ -67,7 +67,8 @@ class Moderation(commands.Cog):
                 raise ValueError
         except ValueError:
             conn.execute(f"INSERT INTO CONFIG (GUILD,MUTEROLE) \
-                VALUES ({guild.id}, {muterole.id}, 0)")
+                VALUES ({guild.id}, {muterole.id})")
+            conn.commit()
         await ctx.send(f"Successfully set the muterole to {muterole.name}.")
             
     @commands.command()
@@ -77,6 +78,23 @@ class Moderation(commands.Cog):
         if member is None:
             await ctx.send("Please provide a member to warn.")
             return
+        guild = ctx.guild
+        mempos = member.top_role.position
+        modpos = ctx.author.top_role.position
+        me = guild.get_member(self.bot.user.id)
+        mepos = me.top_role.position
+        if mempos >= mepos:
+            await ctx.send(f"Unable to warn {member.name} due to role hierarchy.")
+            return
+        elif guild.owner == member:
+            await ctx.send(f"I cannot warn the guild's owner.")
+            return
+        elif ctx.author == member:
+            await ctx.send(f"You cannot ban yourself.")
+            return
+        elif mempos > modpos:
+            await ctx.send(f"You cannot ban {member.name} due to role hierarchy..")
+            return
         try:
             warns = modcore.warn(ctx, member, reason)
         except error.Unable as e:
@@ -84,7 +102,7 @@ class Moderation(commands.Cog):
             return
         try:
             await member.send(f"You were warned in {ctx.guild.name}. Reason: {reason}. \nThis is your {warns} warning.")
-        except discord.Forbidden:
+        except discord.HTTPException or discord.Forbidden:
             pass
         await ctx.send(f"Successfully warned {member.name}. This is their {warns} warning.")
     
@@ -93,16 +111,34 @@ class Moderation(commands.Cog):
     @commands.bot_has_guild_permissions(manage_roles=True)
     async def mute(self, ctx, member: discord.Member=None, duration: str=None, *, reason: str='None'):
         """ Mutes someone with an optional duration. """
-        guild = ctx.guild
         now = time.time()
         if member is None:
             await ctx.send('Please specify a user to mute.')
             return
+        guild = ctx.guild
+        mempos = member.top_role.position
+        modpos = ctx.author.top_role.position
+        me = guild.get_member(self.bot.user.id)
+        mepos = me.top_role.position
+        if mempos >= mepos:
+            await ctx.send(f"Unable to mute {member.name} due to role hierarchy.")
+            return
+        elif guild.owner == member:
+            await ctx.send(f"I cannot mute the guild's owner.")
+            return
+        elif ctx.author == member:
+            await ctx.send(f"You cannot mute yourself.")
+            return
+        elif mempos > modpos:
+            await ctx.send(f"You cannot mute {member.name} due to role hierarchy..")
+            return
         try:
             duration = modcore.gettime(duration)
             expires = now+duration
-        except ValueError:
-            reason = duration+reason
+        except TypeError:
+            reason = f"{duration} {reason}"
+            if reason == '':
+                reason = 'None'
             expires = 'Permanent'
         try:
             muterole = modcore.mute(ctx, member, reason, expires)
@@ -114,22 +150,41 @@ class Moderation(commands.Cog):
         except discord.Forbidden:
             pass
         await member.add_roles(muterole, reason=f"Muted by {ctx.author.name}. Reason: {reason}")
+        await ctx.send(f"Successfully muted {member.name}: {reason}")
 
     @commands.command()
     @commands.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
-    async def ban(self, ctx, member: discord.Member=None, duration: str=None, *, reason: str='None'):
+    async def ban(self, ctx, member: discord.Member=None, duration: str=None, *, reason: str=''):
         """ Bans someone with an optional duration. """
-        guild = ctx.guild
         now = time.time()
         if member is None:
             await ctx.send('Please specify a user to ban.')
             return
+        guild = ctx.guild
+        mempos = member.top_role.position
+        modpos = ctx.author.top_role.position
+        me = guild.get_member(self.bot.user.id)
+        mepos = me.top_role.position
+        if mempos >= mepos:
+            await ctx.send(f"Unable to ban {member.name} due to role hierarchy.")
+            return
+        elif guild.owner == member:
+            await ctx.send(f"I cannot ban the guild's owner.")
+            return
+        elif ctx.author == member:
+            await ctx.send(f"You cannot ban yourself.")
+            return
+        elif mempos > modpos:
+            await ctx.send(f"You cannot ban {member.name} due to role hierarchy..")
+            return
         try:
             duration = modcore.gettime(duration)
             expires = now+duration
-        except ValueError:
-            reason = duration+reason
+        except TypeError:
+            reason = f"{duration} {reason}"
+            if reason == '':
+                reason = 'None'
             expires = 'Permanent'
         try:
             modcore.ban(ctx, member, reason, expires)
@@ -138,18 +193,35 @@ class Moderation(commands.Cog):
             return
         try:
             await member.send(f"You were banned from {guild.name}. Reason: {reason}.")
-        except discord.Forbidden:
+        except discord.HTTPException:
             pass
         await guild.ban(member, reason=f"Banned by {ctx.author.name}. Reason: {reason}")
+        await ctx.send(f"Successfully banned {member.name}: {reason}")
 
     @commands.command()
     @commands.has_guild_permissions(kick_members=True)
     @commands.bot_has_guild_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member=None, *, reason: str='None'):
         """ Kicks a member. """
-        guild = ctx.guild
         if member is None:
             await ctx.send('Please specify a user to kick.')
+            return
+        guild = ctx.guild
+        mempos = member.top_role.position
+        modpos = ctx.author.top_role.position
+        me = guild.get_member(self.bot.user.id)
+        mepos = me.top_role.position
+        if mempos >= mepos:
+            await ctx.send(f"Unable to kick {member} due to role hierarchy.")
+            return
+        elif guild.owner == member:
+            await ctx.send(f"I cannot kick the guild's owner.")
+            return
+        elif ctx.author == member:
+            await ctx.send(f"You cannot ban yourself.")
+            return
+        elif mempos > modpos:
+            await ctx.send(f"You cannot ban {member} due to role hierarchy..")
             return
         try:
             modcore.kick(ctx, member, reason)
@@ -161,13 +233,18 @@ class Moderation(commands.Cog):
         except discord.Forbidden:
             pass
         await guild.kick(member, reason=f"Kicked by {ctx.author.name}. Reason: {reason}")
+        await ctx.send(f"Successfully kicked {member}: {reason}")
 
     @commands.command()
     @commands.has_guild_permissions(manage_messages=True)
     @commands.bot_has_guild_permissions(manage_messages=True)
     async def purge(self, ctx, number: str='100'):
         """ Bulk deletes a number of messages in a channel. Limit of 100 messages. """
-        if number > 1000:
+        try:
+            number = int(number)
+        except ValueError:
+            await ctx.send(f"Invalid number.")
+        if number > 500:
             await ctx.send(f"Cannot delete more than 1000 messages.")
             return
         try:
@@ -175,28 +252,32 @@ class Moderation(commands.Cog):
         except ValueError:
             await ctx.send("Invalid number.")
             return
-        deleted = await ctx.channel.purge(limit=number, check=True)
+        deleted = await ctx.channel.purge(limit=number, bulk=True)
         if len(deleted) > 1:
-            await ctx.send(f'Deleted {len(deleted)} messages.')
+            await ctx.send(f'Deleted {len(deleted)} messages.', delete_after=5)
         else:
-            await ctx.send(f'Deleted {len(deleted)} message.')
+            await ctx.send(f'Deleted {len(deleted)} message.', delete_after=5)
 
     @commands.command()
     @commands.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
-    async def unban(self, ctx, member: discord.Member=None):
+    async def unban(self, ctx, member: str=None):
         """ Unban the specified user from the guild. """
         guild = ctx.guild
         if member is None:
             await ctx.send('Please provide a user to unban.')
             return
-        banlist = await guild.bans()
-        if member not in banlist:
-            await ctx.send(f"{member.name} is not banned.")
-            return
+        try:
+            member = discord.Object(id=int(member))
+        except ValueError:
+            await ctx.send("Invalid user ID.")
         modcore.unban(ctx, member)
-        await guild.unban(member, reason=f"Unbanned by {ctx.author.name}.")
-        await ctx.send(f"Successfully unbanned {member.name}.")
+        try:
+            await guild.unban(member, reason=f"Unbanned by {ctx.author.name}.")
+        except discord.NotFound:
+            await ctx.send("That user is not banned.")
+            return
+        await ctx.send(f"Successfully unbanned the specified user.")
 
     @commands.command()
     @commands.has_guild_permissions(manage_roles=True)
@@ -217,7 +298,7 @@ class Moderation(commands.Cog):
             await member.send(f'You were unmuted by {ctx.author.name} in {guild.name}.')
         except discord.Forbidden:
             pass
-        await ctx.send(f"Successfully unmuted {member.name}.")
+        await ctx.send(f"Successfully unmuted {member}.")
 
     @commands.command(aliases=['listpunish', 'lpunish', 'infractions', 'lp'])
     @commands.has_guild_permissions(manage_guild=True)
@@ -236,7 +317,8 @@ class Moderation(commands.Cog):
         for i in ids:
             ps = ps+f"Type: {types[x]} - Id: {i} - Reason: {reasons[x]}\n"
             x = x+1
-        embed = discord.Embed(title=f"Punishments for {member.name}", description=ps)
+        embed = discord.Embed(title=f"Punishments for {member}", description=ps)
+        await ctx.send(embed=embed)
         
     @commands.command(aliases=['punish','punishinfo','infraction','pi'])
     @commands.has_guild_permissions(manage_guild=True)
@@ -254,11 +336,11 @@ class Moderation(commands.Cog):
         except error.Unable as e:
             await ctx.send(str(e))
             return
-        member = self.bot.get_member(data[1])
-        mod = self.bot.get_member(data[3])
-        embed = discord.Embed(title=f"Information on punishment {id}", description=f"""User: <@{member.id}>
+        member = self.bot.get_user(data[1])
+        mod = self.bot.get_user(data[3])
+        embed = discord.Embed(title=f"Information on punishment {id}", description=f"""User: {member}
         Punishment Type: {type}
-        Moderator: <@{mod.id}>
+        Moderator: {mod}
         Reason: {data[2]}""")
         await ctx.send(embed=embed)
 
@@ -270,17 +352,20 @@ class Moderation(commands.Cog):
             await ctx.send("Please provide a punishment ID.")
             return
         try:
-            modcore.fetchpunish(id)
+            modcore.fetchpunish(ctx, id)
         except error.Unable as e:
             await ctx.send(str(e))
-        await ctx.send("Are you sure you want to proceed with this action? Deleting a punishment may have unexpected consequences.")
+        msg = await ctx.send("Are you sure you want to proceed with this action? Deleting a punishment may have unexpected consequences.")
+        await msg.add_reaction('✅')
+        await msg.add_reaction('❎')
         def check(reaction, user):
             if str(reaction.emoji) == '✅':
                 return user == ctx.author
             elif str(reaction.emoji) == '❎':
-                raise error.Unable(f"Operation cancelled.")
+                if user == ctx.author:
+                    raise error.Unable(f"Operation cancelled.")
         try:
-            reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
+            await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
         except asyncio.TimeoutError:
             await ctx.send('Operation timed out.')
             return
@@ -288,7 +373,7 @@ class Moderation(commands.Cog):
             await ctx.send(str(e))
             return
         try:
-            modcore.delpunish(id)
+            modcore.delpunish(ctx, id)
         except error.Unable as e:
             await ctx.send(str(e))
             return
