@@ -1,5 +1,3 @@
-from configparser import ConfigParser
-import shutil
 import random
 import sqlite3
 from core.Exceptions import *
