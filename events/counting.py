@@ -1,8 +1,9 @@
+from core.UtilCore import *
 import discord
 from discord.ext import commands
 import sqlite3
 
-conn = sqlite3.connect('data\\config.db')
+utils = Utils()
 
 class Counting(commands.Cog):
     def __init__(self, bot):
@@ -21,12 +22,10 @@ class Counting(commands.Cog):
                         try:
                             await message.delete()
                         except discord.Forbidden:
-                            await ctx.send()
                             return
                         return
                     if msg == row[2]+1:
-                        conn.execute(f"UPDATE COUNTING set NUMBER = {msg} where GUILD = {guild.id}")
-                        return
+                        utils.count(guild.id, msg)
                     else:
                         try:
                             await message.delete()

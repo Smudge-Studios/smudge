@@ -11,7 +11,6 @@ utils = Utils()
 parser = ConfigParser()
 parser.read('config.ini')
 token = parser.get('CONFIG', 'token')
-conn = sqlite3.connect('data\\config.db')
 intents = discord.Intents.default()
 intents.members = True
 
@@ -25,23 +24,6 @@ class MyHelpCommand(commands.MinimalHelpCommand):
         await destination.send(embed=e)
 
 bot = commands.Bot(command_prefix = utils.get_prefix, case_insensitive=True, intents=intents, help_command=MyHelpCommand())
-
-initial_extensions = ['commands.admins',
-                      'commands.eco',
-                      'commands.fun',
-                      'commands.moderation',
-                      'commands.owner',
-                      'commands.util',
-                      'commands.help',
-                      'events.botjoin',
-                      'events.counting',
-                      'events.error',
-                      'events.ready',
-                      'events.mistbin',
-                      'events.userjoin',
-                      'events.tokens',
-                      'tasks.bans',
-                      'tasks.mutes']
 
 def load_extension(extension):
     try:

@@ -9,4 +9,3 @@ data/**.db
 config.ini
 data/*.db
 data/*.db-journal
-

@@ -89,6 +89,10 @@ class Utils:
                     VALUES ({ctx.guild.id}, {channel.id}, 0)")
         conn.commit()
 
+    def count(self, guild, msg):
+        conn.execute(f"UPDATE COUNTING set NUMBER = {int(msg)} where GUILD = {int(guild.id)}")
+        conn.commit()
+
     def setprefix(self, ctx, prefix):
         guild = ctx.guild.id
         conn.execute(f"UPDATE CONFIG set PREFIX = '{prefix}' where GUILD = {guild}")
@@ -119,3 +123,60 @@ class Utils:
         elif len(options) <= 1:
             raise error.Unable("Please specify more than one option.")
         return question, options
+
+    def get_config(self, ctx):
+        guild = ctx.guild
+        cursor = conn.execute(f"SELECT * from COUNTING where GUILD = {guild.id}")
+        cursor2 = conn.execute(f"SELECT * from CONFIG where GUILD = {guild.id}")
+        prefix = '>'
+        countchannel = None
+        suggestionchannel = None
+        reportschannel = None
+        mistbin = False
+        tokenalert = False
+        config = dict({})
+        for row in cursor:
+            if row[0] == guild.id:
+                countchannel = row[1]
+        for row in cursor2:
+            if row[0] == guild.id:
+                prefix = row[1]
+                suggestionchannel = row[2]
+                reportschannel = row[3]
+                mistbin = row[4]
+                tokenalert = row[5]
+        config['counting'] = countchannel
+        config['prefix'] = prefix
+        config['suggestions'] = suggestionchannel
+        config['reports'] = reportschannel
+        config['mistbin'] = mistbin
+        config['token'] = tokenalert
+        return config        
+
+    def mistbin(self, ctx, setting):
+        guild = ctx.guild
+        if setting:
+            conn.execute(f"UPDATE CONFIG set MYSTBIN = True where GUILD = {guild.id}")
+        else:
+            conn.execute(f"UPDATE CONFIG set MYSTBIN = False where GUILD = {guild.id}")
+        conn.commit()
+
+    def tokenalerter(self, ctx, setting):
+        guild = ctx.guild
+        if setting:
+            conn.execute(f"UPDATE CONFIG set TOKENALERT = True where GUILD = {guild.id}")
+        else:
+            conn.execute(f"UPDATE CONFIG set TOKENALERT = False where GUILD = {guild.id}")
+        conn.commit()
+
+    def tokenon(self, guildid):
+        cursor = conn.execute(f"SELECT * from CONFIG where GUILD = {guildid}")
+        for row in cursor:
+            if row[0] == guildid:
+                return row[5]
+
+    def mistbinon(self, guildid):
+        cursor = conn.execute(f"SELECT * from CONFIG where GUILD = {guildid}")
+        for row in cursor:
+            if row[0] == guildid:
+                return row[4]
