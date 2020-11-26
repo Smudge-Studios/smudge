@@ -17,3 +17,5 @@ python3 -m pip install -U discord.py
 # Windows
 py -3 -m pip install -U discord.py
 ```
+
+This project also requires [mystb.in](https://pypi.org/project/mystbin.py/). You can install it with `pip install mystbin.py`.
