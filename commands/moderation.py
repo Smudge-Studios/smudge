@@ -1,4 +1,4 @@
-from typing import Type
+import random
 from core.ModCore import *
 import discord
 from discord.ext import commands
@@ -304,6 +304,7 @@ class Moderation(commands.Cog):
     @commands.has_guild_permissions(manage_guild=True)
     async def listpunishments(self, ctx, member: discord.Member=None, type: str=None):
         """ Displays a list of punishments a member has recieved. """
+        color=random.randint(1, 16777215)
         if member is None:
             await ctx.send("Please specify a member.")
             return
@@ -317,13 +318,14 @@ class Moderation(commands.Cog):
         for i in ids:
             ps = ps+f"Type: {types[x]} - Id: {i} - Reason: {reasons[x]}\n"
             x = x+1
-        embed = discord.Embed(title=f"Punishments for {member}", description=ps)
+        embed = discord.Embed(title=f"Punishments for {member}", description=ps, color=color)
         await ctx.send(embed=embed)
         
     @commands.command(aliases=['punish','punishinfo','infraction','pi'])
     @commands.has_guild_permissions(manage_guild=True)
     async def punishmentinfo(self, ctx, id: str=None):
         """ Displays information on a specific punishment. """
+        color=random.randint(1, 16777215)
         if id is None:
             await ctx.send("Please provide a punishment ID.")
             return
@@ -341,7 +343,7 @@ class Moderation(commands.Cog):
         embed = discord.Embed(title=f"Information on punishment {id}", description=f"""User: {member}
         Punishment Type: {type}
         Moderator: {mod}
-        Reason: {data[2]}""")
+        Reason: {data[2]}""", color=color)
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['delpunish','deletepunish', 'dp'])

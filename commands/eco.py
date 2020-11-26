@@ -43,7 +43,8 @@ class Economy(commands.Cog):
                 return
             user = member.name
             userid = member.id
-        embed = discord.Embed(title=f"{user}'s Balance", color=0xff0000)
+        color=random.randint(1, 16777215)
+        embed = discord.Embed(title=f"{user}'s Balance", color=color)
         embed.add_field(name='Wallet', value=f'${wallet.get(userid)}')
         embed.add_field(name='Bank', value=f'${bank.get(userid)}')
         await ctx.send(embed=embed)
@@ -54,7 +55,8 @@ class Economy(commands.Cog):
         """ Claim your daily reward. """
         user = ctx.author.id
         wallet.add(user, 500)
-        embed = discord.Embed(title=f"Daily Reward", description='You collected your daily reward! $500 was added to your wallet.', color=0xff0000)
+        color=random.randint(1, 16777215)
+        embed = discord.Embed(title=f"Daily Reward", description='You collected your daily reward! $500 was added to your wallet.', color=color)
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['dep'])
@@ -62,6 +64,7 @@ class Economy(commands.Cog):
         """ Deposit money from your wallet to your bank. """
         user = ctx.author.id
         bal = wallet.get(user)
+        color=random.randint(1, 16777215)
         if not amnt:
             embed = discord.Embed(title=f"Deposit", description='Please specify an amount.', color=0xff0000)
             await ctx.send(embed=embed)
@@ -80,7 +83,7 @@ class Economy(commands.Cog):
                 return
         try:
             eco.deposit(user, amnt)
-            embed = discord.Embed(title=f"Deposit", description=f'Successfully deposited `${amnt}`.', color=0xff0000)
+            embed = discord.Embed(title=f"Deposit", description=f'Successfully deposited `${amnt}`.', color=color)
             await ctx.send(embed=embed)
         except error.NEMU:
             embed = discord.Embed(title=f"Deposit", description=f'Insufficient funds.', color=0xff0000)
@@ -93,6 +96,7 @@ class Economy(commands.Cog):
         """ Withdraw money from your bank to your wallet. """
         user = ctx.author.id
         bal = bank.get(user)
+        color=random.randint(1, 16777215)
         if not amnt:
             embed = discord.Embed(title=f"Withdraw", description='Please specify an amount.', color=0xff0000)
             await ctx.send(embed=embed)
@@ -111,7 +115,7 @@ class Economy(commands.Cog):
                 return
         try:
             eco.withdraw(user, amnt)
-            embed = discord.Embed(title=f"Withdraw", description=f'Successfully withdrew `${amnt}`.', color=0xff0000)
+            embed = discord.Embed(title=f"Withdraw", description=f'Successfully withdrew `${amnt}`.', color=color)
             await ctx.send(embed=embed)
         except error.NEMU:
             embed = discord.Embed(title=f"Deposit", description=f'Insufficient funds.', color=0xff0000)

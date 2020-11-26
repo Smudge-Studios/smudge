@@ -15,6 +15,7 @@ class Fun(commands.Cog):
     @commands.command()
     async def meme(self, ctx):
         """ Display a random meme from [r/memes](https://reddit.com/r/memes/). """
+        color=random.randint(1, 16777215)
         async with ctx.channel.typing():
             while True:
                 try:
@@ -35,7 +36,7 @@ class Fun(commands.Cog):
                     break
                 except IndexError:
                     pass
-            embed = discord.Embed(title=title, url=f"https://www.reddit.com/r/memes/comments/{str(post_id)}")
+            embed = discord.Embed(title=title, url=f"https://www.reddit.com/r/memes/comments/{str(post_id)}", color=color)
             embed.set_image(url=image_url)
             embed.set_footer(icon_url='https://user-images.githubusercontent.com/49261529/97658891-b9051a00-1a2a-11eb-9faf-bf0b940f1d2f.png', text=str(upvotes))
             await ctx.send(embed=embed)
