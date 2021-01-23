@@ -30,8 +30,7 @@ class ErrorHandler(commands.Cog):
 
         # If a user doesn't provide a required argument
         elif isinstance(error, commands.MissingRequiredArgument):
-            embed = discord.Embed(title="Error", description="""Missing Required Argument.""", color=0xff0000)
-            await ctx.send(embed=embed)
+            await ctx.send("Please provide all required arguments.")
             return
         
         # If a user tries to run a restricted command
@@ -50,9 +49,8 @@ class ErrorHandler(commands.Cog):
             print("Discord HTTP Exception: " + str(error))
             return
 
-        # If the user is blacklisted
+        # If the command is disabled
         elif isinstance(error, commands.DisabledCommand):
-            await ctx.send(f'You are blacklisted from my economy. Reason: {error}')
             return
         
         # If the command is on a cooldown
@@ -86,7 +84,10 @@ class ErrorHandler(commands.Cog):
         # If the user doesnt have enough permissions to run a command
         elif isinstance(error, commands.MissingPermissions):
             perms = ', '.join(error.missing_perms)
-            await ctx.send(f'Sorry, you need the permission(s) `{perms}` to execute this command.')
+            if len(error.missing_perms) == 1:
+                await ctx.send(f'Sorry, you need the permission `{perms}` to execute this command.')
+            else:
+                await ctx.send(f'Sorry, you need the permissions `{perms}` to execute this command.')
             return
 
         # If the error is not recognized

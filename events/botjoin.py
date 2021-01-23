@@ -12,11 +12,11 @@ class BotJoin(commands.Cog):
     async def on_guild_join(self, guild):
         channels = guild.text_channels
         for channel in channels:
-            try:
+            me = guild.get_member(self.bot.user.id)
+            perms = channel.permissions_for(me)
+            if perms.send_messages:
                 await channel.send("Hello, thanks for adding me!\nMy default prefix is `>`, please run `>help` to get started!")
                 break 
-            except:
-                pass
             
 def setup(bot):
     bot.add_cog(BotJoin(bot))

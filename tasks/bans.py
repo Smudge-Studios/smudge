@@ -15,7 +15,10 @@ class AutoUnban(commands.Cog):
 
     @tasks.loop(seconds=60.0)
     async def unban(self):
-        guilds, members = mod.autounban()
+        try:
+            guilds, members = await mod.autounban()
+        except TypeError:
+            return
         i = 0
         for g in guilds:
             y = True

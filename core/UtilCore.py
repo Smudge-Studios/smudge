@@ -1,117 +1,141 @@
 from core.Exceptions import *
-import sqlite3
+import aiosqlite
 import time
+from core.AutoModSettings import AutoModSettingsManager
+from core.LevelCore import Levels
+from discord.ext import commands
 
-conn = sqlite3.connect('data\\config.db')
+levels = Levels()
 
 class Utils:
-    def reportchannel(self, ctx):
+    async def reportchannel(self, ctx):
         guild = ctx.guild
-        cursor = conn.execute(f"SELECT * from CONFIG where GUILD = {guild.id}")
-        for row in cursor:
-            if row[0] == guild.id:
-                if row[3] is None:
-                    raise error.Unable("This guild does not have a report channel set.")
-                channel = guild.get_channel(row[3])
-                if channel == None:
-                    raise error.Unable("This guild does not have a report channel set.")
-                return channel
+        async with aiosqlite.connect('data\\config.db') as conn:
+            async with conn.execute(f"SELECT * from CONFIG where GUILD = {guild.id}") as cursor:
+                async for row in cursor:
+                    if row[0] == guild.id:
+                        if row[3] is None:
+                            raise error.Unable("This guild does not have a report channel set.")
+                        channel = guild.get_channel(row[3])
+                        if channel == None:
+                            raise error.Unable("This guild does not have a report channel set.")
+                        return channel
+        raise error.Unable("This guild does not have a report channel set.")
 
-    def setreportchannel(self, ctx, channel):
+    async def setreportchannel(self, ctx, channel):
         guild = ctx.guild
-        if channel == 'remove':
-            conn.execute(f"UPDATE CONFIG set REPORTS = Null where GUILD = {guild.id}")
-        else:
-            cursor = conn.execute("SELECT * from CONFIG")
-            try:
-                cr = True
-                for row in cursor:
-                    if row[0] == ctx.guild.id:
-                        conn.execute(f"UPDATE CONFIG set REPORTS = {channel.id} where GUILD = {guild.id}")
-                        cr = False
-                        break
-                if cr==True:
-                    raise ValueError
-            except ValueError:
-                conn.execute(f"INSERT INTO CONFIG (GUILD,PREFIX,REPORTS) \
-                    VALUES ({ctx.guild.id}, '>', {channel.id})")
-        conn.commit()
+        async with aiosqlite.connect('data\\config.db') as conn:
+            if channel == 'remove':
+                await conn.execute(f"UPDATE CONFIG set REPORTS = Null where GUILD = {guild.id}")
+            else:
+                async with conn.execute(f"SELECT * from CONFIG where GUILD = {ctx.guild.id}") as cursor:
+                    cr = True
+                    async for row in cursor:
+                        if row[0] == ctx.guild.id:
+                            conn.execute(f"UPDATE CONFIG set REPORTS = {channel.id} where GUILD = {guild.id}")
+                            cr = False
+                            break
+                    if cr:
+                        conn.execute(f"INSERT INTO CONFIG (GUILD,PREFIX,REPORTS) \
+                            VALUES ({ctx.guild.id}, '>', {channel.id})")
+            await conn.commit()
 
-    def suggestchannel(self, ctx):
+    async def suggestchannel(self, ctx):
         guild = ctx.guild
-        cursor = conn.execute(f"SELECT * from CONFIG where GUILD = {guild.id}")
-        for row in cursor:
-            if row[0] == guild.id:
-                if row[2] is None:
-                    raise error.Unable("This guild does not have a suggestion channel set.")
-                channel = guild.get_channel(row[2])
-                if channel == None:
-                    raise error.Unable("This guild does not have a suggestion channel set.")
-                return channel
+        async with aiosqlite.connect('data\\config.db') as conn:
+            async with conn.execute(f"SELECT * from CONFIG where GUILD = {guild.id}") as cursor:
+                async for row in cursor:
+                    if row[0] == guild.id:
+                        if row[2] is None:
+                            raise error.Unable("This guild does not have a suggestion channel set.")
+                        channel = guild.get_channel(row[2])
+                        if channel == None:
+                            raise error.Unable("This guild does not have a suggestion channel set.")
+                        return channel
+        raise error.Unable("This guild does not have a suggestion channel set.")
 
-    def setsuggestionchannel(self, ctx, channel):
+    async def setsuggestionchannel(self, ctx, channel):
         guild = ctx.guild
-        if channel == 'remove':
-            conn.execute(f"UPDATE CONFIG set SUGGESTIONS = Null where GUILD = {guild.id}")
-        else:
-            cursor = conn.execute("SELECT * from CONFIG")
-            try:
-                cr = True
-                for row in cursor:
-                    if row[0] == ctx.guild.id:
-                        conn.execute(f"UPDATE CONFIG set SUGGESTIONS = {channel.id} where GUILD = {guild.id}")
-                        cr = False
-                        break
-                if cr==True:
-                    raise ValueError
-            except ValueError:
-                conn.execute(f"INSERT INTO CONFIG (GUILD,PREFIX,SUGGESTIONS) \
-                    VALUES ({ctx.guild.id}, '>', {channel.id})")
-        conn.commit()
+        async with aiosqlite.connect('data\\config.db') as conn:
+            if channel == 'remove':
+                await conn.execute(f"UPDATE CONFIG set SUGGESTIONS = Null where GUILD = {guild.id}")
+            else:
+                async with conn.execute("SELECT * from CONFIG") as cursor:
+                    cr = True
+                    for row in cursor:
+                        if row[0] == ctx.guild.id:
+                            await conn.execute(f"UPDATE CONFIG set SUGGESTIONS = {channel.id} where GUILD = {guild.id}")
+                            cr = False
+                            break
+                    if cr:
+                        await conn.execute(f"INSERT INTO CONFIG (GUILD,PREFIX,SUGGESTIONS) \
+                            VALUES ({ctx.guild.id}, '>', {channel.id})")
+            await conn.commit()
 
-    def setcountingchannel(self, ctx, channel):
+    async def setcountingchannel(self, ctx, channel):
         guild = ctx.guild
-        if channel == 'remove':
-            conn.execute(f"UPDATE COUNTING set CHANNEL = Null where GUILD = {guild.id}")
-        else:
-            cursor = conn.execute("SELECT * from COUNTING")
-            try:
-                cr = True
-                for row in cursor:
-                    if row[0] == ctx.guild.id:
-                        conn.execute(f"UPDATE COUNTING set CHANNEL = {channel.id} where GUILD = {guild.id}")
-                        cr = False
-                        break
-                if cr==True:
-                    raise ValueError
-            except ValueError:
-                conn.execute(f"INSERT INTO COUNTING (GUILD,CHANNEL,NUMBER) \
-                    VALUES ({ctx.guild.id}, {channel.id}, 0)")
-        conn.commit()
+        async with aiosqlite.connect('data\\config.db') as conn:
+            if channel == 'remove':
+                await conn.execute(f"UPDATE COUNTING set CHANNEL = Null where GUILD = {guild.id}")
+            else:
+                async with conn.execute("SELECT * from COUNTING") as cursor:
+                    cr = True
+                    async for row in cursor:
+                        if row[0] == ctx.guild.id:
+                            await conn.execute(f"UPDATE COUNTING set CHANNEL = {channel.id} where GUILD = {guild.id}")
+                            cr = False
+                            break
+                    if cr:
+                        await conn.execute(f"INSERT INTO COUNTING (GUILD,CHANNEL,NUMBER) \
+                            VALUES ({ctx.guild.id}, {channel.id}, 0)")
+            await conn.commit()
 
-    def count(self, guild, msg):
-        conn.execute(f"UPDATE COUNTING set NUMBER = {int(msg)} where GUILD = {int(guild.id)}")
-        conn.commit()
+    async def count(self, guild, msg):
+        async with aiosqlite.connect('data\\config.db') as conn:
+            await conn.execute(f"UPDATE COUNTING set NUMBER = {int(msg)} where GUILD = {int(guild)}")
+            await conn.commit()
 
-    def setprefix(self, ctx, prefix):
+    async def setprefix(self, ctx, prefix):
         guild = ctx.guild.id
-        conn.execute(f"UPDATE CONFIG set PREFIX = '{prefix}' where GUILD = {guild}")
-        conn.commit()
+        async with aiosqlite.connect('data\\config.db') as conn:
+            await conn.execute(f"UPDATE CONFIG set PREFIX = ? where GUILD = {guild}", (f'{prefix}'))
+            await conn.commit()
 
-    def get_prefix(self, bot, message):
+    async def get_prefix(self, bot, message):
         """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
-        cursor = conn.execute("SELECT * from CONFIG")
-        for row in cursor:
-            if row[0] == message.guild.id:
-                return row[1]
-        else:
-            conn.execute(f"INSERT INTO COUNTING (GUILD) \
+        async with aiosqlite.connect('data\\config.db') as conn:
+            async with conn.execute("SELECT * from CONFIG") as cursor:
+                async for row in cursor:
+                    if row[0] == message.guild.id:
+                        await levels.insert(message.author.id, message.author.guild.id)
+                        prefixes = [row[1]]
+                        return commands.when_mentioned_or(*prefixes)(bot, message)
+            await conn.execute(f"INSERT INTO COUNTING (GUILD) \
                 VALUES ({message.guild.id})")
-            conn.execute(f"INSERT INTO CONFIG (GUILD, PREFIX) \
+            await conn.execute(f"INSERT INTO CONFIG (GUILD, PREFIX) \
                 VALUES ({message.guild.id}, '>')")
-            return(">")
+        await AutoModSettingsManager().create(message.guild.id)
+        await levels.insert(message.author.id, message.author.guild.id)
+        prefixes = ['>']
+        return commands.when_mentioned_or(*prefixes)(bot, message)
+    
+    async def get_readable_prefix(self, ctx):
+        guild = ctx.guild
+        async with aiosqlite.connect('data\\config.db') as conn:
+            async with conn.execute("SELECT * from CONFIG") as cursor:
+                async for row in cursor:
+                    if row[0] == guild.id:
+                        levels.insert(ctx.author.id, guild.id)
+                        return row[1]
+            await conn.execute(f"INSERT INTO COUNTING (GUILD) \
+                VALUES ({ctx.guild.id})")
+            await conn.execute(f"INSERT INTO CONFIG (GUILD, PREFIX) \
+                VALUES ({ctx.guild.id}, '>')")
+        await AutoModSettingsManager().create(ctx.guild.id)
+        await levels.insert(ctx.author.id, ctx.author.guild.id)
+        return '>'
 
-    def poll(self, input):
+    async def poll(self, input):
         options = input.split('|')
         question = options[0]
         options.remove(question)
@@ -124,59 +148,84 @@ class Utils:
             raise error.Unable("Please specify more than one option.")
         return question, options
 
-    def get_config(self, ctx):
+    async def get_config(self, ctx):
         guild = ctx.guild
-        cursor = conn.execute(f"SELECT * from COUNTING where GUILD = {guild.id}")
-        cursor2 = conn.execute(f"SELECT * from CONFIG where GUILD = {guild.id}")
         prefix = '>'
         countchannel = None
         suggestionchannel = None
         reportschannel = None
         mistbin = False
         tokenalert = False
+        levels = False
         config = dict({})
-        for row in cursor:
-            if row[0] == guild.id:
-                countchannel = row[1]
-        for row in cursor2:
-            if row[0] == guild.id:
-                prefix = row[1]
-                suggestionchannel = row[2]
-                reportschannel = row[3]
-                mistbin = row[4]
-                tokenalert = row[5]
+        async with aiosqlite.connect('data\\config.db') as conn:
+            async with conn.execute(f"SELECT * from COUNTING where GUILD = {guild.id}") as cursor:
+                async for row in cursor:
+                    if row[0] == guild.id:
+                        countchannel = row[1]
+            async with conn.execute(f"SELECT * from CONFIG where GUILD = {guild.id}") as cursor:
+                async for row in cursor:
+                    if row[0] == guild.id:
+                        prefix = row[1]
+                        suggestionchannel = row[2]
+                        reportschannel = row[3]
+                        mistbin = row[4]
+                        tokenalert = row[5]
+                        levels = row[6]
         config['counting'] = countchannel
         config['prefix'] = prefix
         config['suggestions'] = suggestionchannel
         config['reports'] = reportschannel
         config['mistbin'] = mistbin
         config['token'] = tokenalert
+        config['levels'] = levels
         return config        
 
-    def mistbin(self, ctx, setting):
+    async def mistbin(self, ctx, setting):
         guild = ctx.guild
-        if setting:
-            conn.execute(f"UPDATE CONFIG set MYSTBIN = True where GUILD = {guild.id}")
-        else:
-            conn.execute(f"UPDATE CONFIG set MYSTBIN = False where GUILD = {guild.id}")
-        conn.commit()
+        async with aiosqlite.connect('data\\config.db') as conn:
+            if setting:
+                await conn.execute(f"UPDATE CONFIG set MYSTBIN = True where GUILD = {guild.id}")
+            else:
+                await conn.execute(f"UPDATE CONFIG set MYSTBIN = False where GUILD = {guild.id}")
+            await conn.commit()
 
-    def tokenalerter(self, ctx, setting):
+    async def tokenalerter(self, ctx, setting):
         guild = ctx.guild
-        if setting:
-            conn.execute(f"UPDATE CONFIG set TOKENALERT = True where GUILD = {guild.id}")
-        else:
-            conn.execute(f"UPDATE CONFIG set TOKENALERT = False where GUILD = {guild.id}")
-        conn.commit()
+        async with aiosqlite.connect('data\\config.db') as conn:
+            if setting:
+                await conn.execute(f"UPDATE CONFIG set TOKENALERT = True where GUILD = {guild.id}")
+            else:
+                await conn.execute(f"UPDATE CONFIG set TOKENALERT = False where GUILD = {guild.id}")
+            await conn.commit()
 
-    def tokenon(self, guildid):
-        cursor = conn.execute(f"SELECT * from CONFIG where GUILD = {guildid}")
-        for row in cursor:
-            if row[0] == guildid:
-                return row[5]
+    async def tokenon(self, guildid):
+        async with aiosqlite.connect('data\\config.db') as conn:
+            async with conn.execute(f"SELECT * from CONFIG where GUILD = {guildid}") as cursor:
+                async for row in cursor:
+                    if row[0] == guildid:
+                        return row[5]
 
-    def mistbinon(self, guildid):
-        cursor = conn.execute(f"SELECT * from CONFIG where GUILD = {guildid}")
-        for row in cursor:
-            if row[0] == guildid:
-                return row[4]
+    async def mistbinon(self, guildid):
+        async with aiosqlite.connect('data\\config.db') as conn:
+            async with conn.execute(f"SELECT * from CONFIG where GUILD = {guildid}") as cursor:
+                async for row in cursor:
+                    if row[0] == guildid:
+                        return row[4]
+
+    async def levels(self, ctx, setting):
+        guild = ctx.guild
+        async with aiosqlite.connect('data\\config.db') as conn:
+            if setting:
+                await conn.execute(f"UPDATE CONFIG set LEVELS = True where GUILD = {guild.id}")
+            else:
+                await conn.execute(f"UPDATE CONFIG set LEVELS = False where GUILD = {guild.id}")
+            await conn.commit()
+
+    async def levelson(self, guildid):
+        async with aiosqlite.connect('data\\config.db') as conn:
+            async with conn.execute(f"SELECT * from CONFIG where GUILD = {guildid}") as cursor:
+                async for row in cursor:
+                    if row[0] == guildid:
+                        return row[6]
+

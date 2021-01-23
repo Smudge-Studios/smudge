@@ -1,9 +1,12 @@
 import discord
 from discord.ext import commands
 from core.EcoCore import *
-import sqlite3
+import aiosqlite
+from core.UtilCore import Utils
+from core.ModCore import Mod
 
-conn = sqlite3.connect('data\\bot.db')
+modcore = Mod()
+utils = Utils()
 
 class Restricted(commands.Cog):
     def __init__(self, bot):
@@ -19,103 +22,128 @@ class Restricted(commands.Cog):
     async def wipe(self, ctx, member: discord.Member=None, *reason):
         """ Wipes somebody's balance. """
         if member is None:
-            await ctx.send("Please mention someone to wipe.")
+            await ctx.reply("Please mention someone to wipe.")
             return
         reason = ' '.join(reason)
         if reason == '':
             reason = 'None'
         try:
-            file2.delete(member.id)
+            await data.delete(member.id)
         except ValueError:
-            await ctx.send(f"Couldn't wipe `{member.name}`: User is not in the database.")
-        await ctx.send(f"Successfully wiped `{member.name}` from the database: `{reason}`")
-        await member.send(f"You were wiped from my database by `{ctx.author.name}` with reason `{reason}`")
+            await ctx.reply(f"Couldn't wipe `{member.name}`: User is not in the database.")
+        await ctx.reply(f"Successfully wiped `{member.name}` from the database: `{reason}`")
+        await member.reply(f"You were wiped from my database by `{ctx.author.name}` with reason `{reason}`")
         print(f'{ctx.author.name} wiped {member.name} from the database: {reason}')
+
+    @wipe.error
+    async def eh699(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.reply("Please provide an actual member.")
 
     @commands.command(aliases=['blist'])
     async def blacklist(self, ctx, member: discord.Member=None, *reason):
         """ Blacklists someone from the economy. """
         if member is None:
-            await ctx.send("Please mention someone to blacklist.")
+            await ctx.reply("Please mention someone to blacklist.")
             return
         reason = ' '.join(reason)
         if reason == '':
             reason = 'None'
-        cursor = conn.execute("SELECT * from BLACKLIST")
-        try:
-            for row in cursor:
-                if row[0] == member.id:
-                    raise error.UNABLE
-        except error.UNABLE:
-            await ctx.send(f"`{member}` is already blacklisted. Reason: `{reason}`.")
-            return
-        else:
-            conn.execute(f"INSERT INTO BLACKLIST (USER,REASON) \
+        async with aiosqlite.connect('data\\bot.db') as conn:
+            async with conn.execute("SELECT * from BLACKLIST") as cursor:
+                async for row in cursor:
+                    if row[0] == member.id:
+                        await ctx.reply(f"`{member}` is already blacklisted. Reason: `{reason}`.")
+                        return
+            await conn.execute(f"INSERT INTO BLACKLIST (USER,REASON) \
                     VALUES ({member.id}, '{reason}')")
-            conn.commit()
-            await ctx.send(f"Successfully blacklisted `{member}`. Reason: `{reason}`")
-            await member.send(f"You were blacklisted from using my economy by `{ctx.author}`. Reason: `{reason}`")
-            print(f'{ctx.author} blacklisted {member}. Reason: {reason}')
+            await conn.commit()
+        await ctx.reply(f"Successfully blacklisted `{member}`. Reason: `{reason}`")
+        await member.reply(f"You were blacklisted from using my economy by `{ctx.author}`. Reason: `{reason}`")
+        print(f'{ctx.author} blacklisted {member}. Reason: {reason}')
+
+    @blacklist.error
+    async def eh69(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.reply("Please provide an actual member.")
 
     @commands.command(aliases=['unblist'])
     async def unblacklist(self, ctx, member: discord.Member=None):
         """ Unblacklists someone from the economy. """
         if member is None:
-            await ctx.send("Please mention someone to unblacklist.")
+            await ctx.reply("Please mention someone to unblacklist.")
             return
-        try:
-            conn.execute(f"DELETE from BLACKLIST where USER = {member.id};")
-        except sqlite3.OperationalError as e:
-            if str(e) == f'no such column: {member.id}':
-                raise ValueError
-            else:
-                raise e
-        conn.commit()
-        await ctx.send(f"Successfully unblacklisted `{member}`.")
-        await member.send(f"You were removed from my blacklist by `{ctx.author}`. You should now be able to use my economy.")
-        print(f'{ctx.author} unblacklisted {member}')
+        s = False
+        async with aiosqlite.connect('data\\bot.db') as conn:
+            async with conn.execute("SELECT * from BLACKLIST") as cursor:
+                async for row in cursor:
+                    if row[0] == member.id:
+                        await conn.execute(f"DELETE from BLACKLIST where USER = {member.id};")
+                        await conn.commit()
+                        s = True
+        if s:
+            await ctx.reply(f"Successfully unblacklisted `{member}`.")
+            await member.reply(f"You were removed from my blacklist by `{ctx.author}`. You should now be able to use my economy.")
+            print(f'{ctx.author} unblacklisted {member}')
+        else:
+            await ctx.reply(f"`{member}` is not blacklisted.")
+
+    @unblacklist.error
+    async def eh691(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.reply("Please provide an actual member.")
 
     @commands.command(aliases=['amoney'])
     async def addmoney(self, ctx, member: discord.Member=None, money: str=None, location: str='wallet'):
         """ Adds money to someone's balance. """
         if member is None:
-            await ctx.send('Please specify which user to add money to.')
+            await ctx.reply('Please specify which user to add money to.')
             return
         elif money is None:
-            await ctx.send(f'Please specify the amount of money you would like to add to {member.name}')
+            await ctx.reply(f'Please specify the amount of money you would like to add to {member.name}')
             return
         try:
             money = int(money)
         except ValueError:
-            await ctx.send(f'Please enter a number for the `money` argument.')
+            await ctx.reply(f'Please enter a number for the `money` argument.')
             return
         location = location.lower()
         if location == 'wallet':
-            wallet.add(member.id, money)
+            await wallet.add(member.id, money)
         elif location == 'bank':
-            bank.add(member.id, money)
-        await ctx.send(f"Added ${money} to {member}'s {location}.")
+            await bank.add(member.id, money)
+        await ctx.reply(f"Added ${money} to {member}'s {location}.")
+
+    @addmoney.error
+    async def eh692(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.reply("Please provide an actual member.")
 
     @commands.command(aliases=['remmoney','remony','rmoney'])
     async def removemoney(self, ctx, member: discord.Member=None, money: str=None, location: str='wallet'):
         """ Removes money from someone's balance. """
         if member is None:
-            await ctx.send('Please specify which user to add money to.')
+            await ctx.reply('Please specify which user to add money to.')
             return
         elif money is None:
-            await ctx.send(f'Please specify the amount of money you would like to add to {member.name}')
+            await ctx.reply(f'Please specify the amount of money you would like to add to {member.name}')
             return
         try:
             money = int(money)
         except ValueError:
-            await ctx.send(f'Please enter a number for the `money` argument.')
+            await ctx.reply(f'Please enter a number for the `money` argument.')
             return
         location = location.lower()
         if location == 'wallet':
-            wallet.remove(member.id, money)
+            await wallet.remove(member.id, money)
         elif location == 'bank':
-            bank.remove(member.id, money)
-        await ctx.send(f"Removed ${money} from {member}'s {location}.")
+            await bank.remove(member.id, money)
+        await ctx.reply(f"Removed ${money} from {member}'s {location}.")
+
+    @removemoney.error
+    async def eh693(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.reply("Please provide an actual member.")
 
     @commands.command()
     async def unload(self, ctx, *, cog: str):
@@ -127,11 +155,13 @@ class Restricted(commands.Cog):
             print(f'Successfully unloaded extension {cog}.')
         except Exception as e:
             embed = discord.Embed(title='Error', description=str(e), color=0xff0000)
-            await ctx.send(embed=embed)
+            embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
+            await ctx.reply(embed=embed)
             print(f"Couldn't unload extension {cog}: {e}")
         else:
             embed = discord.Embed(title='Success', description=f'Successfully unloaded extension {cog}', color=0xff0000)
-            await ctx.send(embed=embed)
+            embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
+            await ctx.reply(embed=embed)
 
     @commands.command()
     async def load(self, ctx, *, cog: str):
@@ -143,11 +173,13 @@ class Restricted(commands.Cog):
             print(f'Successfully loaded extension {cog}.')
         except Exception as e:
             embed = discord.Embed(title='Error', description=str(e), color=0xff0000)
-            await ctx.send(embed=embed)
+            embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
+            await ctx.reply(embed=embed)
             print(f"Couldn't load extension {cog}: {e}")
         else:
             embed = discord.Embed(title='Success', description=f'Successfully loaded extension {cog}', color=0xff0000)
-            await ctx.send(embed=embed)
+            embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
+            await ctx.reply(embed=embed)
 
     @commands.command()
     async def reload(self, ctx, *, cog: str):
@@ -158,11 +190,13 @@ class Restricted(commands.Cog):
             print(f'Successfully reloaded extension {cog}.')
         except Exception as e:
             embed = discord.Embed(title='Error', description=str(e), color=0xff0000)
-            await ctx.send(embed=embed)
+            embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
+            await ctx.reply(embed=embed)
             print(f"Couldn't reload extension {cog}: {e}")
         else:
             embed = discord.Embed(title='Success', description=f'Successfully reloaded extension {cog}', color=0xff0000)
-            await ctx.send(embed=embed)
+            embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
+            await ctx.reply(embed=embed)
 
     @commands.command()
     async def stop(self, ctx):
@@ -172,8 +206,20 @@ class Restricted(commands.Cog):
             self.bot.logout()
         except Exception as e:
             embed = discord.Embed(title='Error', description=str(e), color=0xff0000)
-            await ctx.send(embed=embed)
+            embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
+            await ctx.reply(embed=embed)
             print(f"Couldn't stop the bot: {e}")
+
+    @commands.command()
+    async def forceprefix(self, ctx, prefix):
+        """ Forces the guild prefix to be something else. """
+        if prefix is None:
+            prefix = '>'
+        elif prefix == '':
+            await ctx.reply("Invalid argument. Please omit any quotes in the command.")
+            return
+        await utils.setprefix(ctx, prefix)
+        await ctx.reply(f'Successfully changed the server prefix to `{prefix}`')
 
 def setup(bot):
     bot.add_cog(Restricted(bot))

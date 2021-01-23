@@ -15,24 +15,25 @@ class AutoUnmute(commands.Cog):
 
     @tasks.loop(seconds=60.0)
     async def unmute(self):
-        guilds, members, roles = mod.autounmute()
+        try:
+            guilds, members, roles = await mod.autounmute()
+        except TypeError:
+            return
         i = 0
         for g in guilds:
-            y = True
             try:
-                guild = self.bot.get_guild(g)
-                user = guild.get_member(members[i])
-                muterole = guild.get_role(roles[i])
-                try:
+                y = True
+                guild = self.bot.get_guild(int(g))
+                if guild is not None:
+                    user = guild.get_member(members[i])
+                    muterole = guild.get_role(roles[i])
                     await user.remove_roles(muterole)
-                except:
-                    y = False
-                i=i+1
-                if y == True:
-                    try:
-                        await user.send(f"You have been automatically unmuted in {guild.name}.")
-                    except discord.HTTPException:
-                        pass
+                    i=i+1
+                    if y == True:
+                        try:
+                            await user.send(f"You have been automatically unmuted in {guild.name}.")
+                        except discord.HTTPException:
+                            pass
             except:
                 pass
 

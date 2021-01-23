@@ -9,3 +9,6 @@ data/**.db
 config.ini
 data/*.db
 data/*.db-journal
+automod/__pycache__/**.pyc
+levels/__pycache__/**.pyc
+data/**.db

@@ -1,0 +1,4 @@
+aiohttp==3.6.2
+discord.py==1.5.1
+mystbin.py==0.3.5
+better-profanity==0.7.0
